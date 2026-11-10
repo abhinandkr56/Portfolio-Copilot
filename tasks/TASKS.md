@@ -27,14 +27,14 @@ Docs: 02
 
 Docs: 05, 08 §1
 
-- [ ] Records and enums from doc 05
-- [ ] `Classifier` (asset class, plan type, direct twin)
-- [ ] `PortfolioCalculator` (values, hybrid split, allocation)
-- [ ] `RulesEngine.Evaluate(PortfolioInput, TimeProvider) → IReadOnlyList<Finding>` with all rules, the ordering and the message templates
-- [ ] `PlanValidator`
-- [ ] `AmfiNavParser`
-- [ ] `ScenarioLoader` (test helper in Core.Tests, or a `Core/Testing` folder): reads `samples/scenarios/*.json` + the instruments CSV + the AMFI sample into `PortfolioInput`
-- [ ] All Core.Tests from doc 08 §1, **including every golden scenario**
+- [x] Records and enums from doc 05
+- [x] `Classifier` (asset class, plan type, direct twin)
+- [x] `PortfolioCalculator` (values, hybrid split, allocation)
+- [x] `RulesEngine.Evaluate(PortfolioInput, TimeProvider) → IReadOnlyList<Finding>` with all rules, the ordering and the message templates
+- [x] `PlanValidator`
+- [x] `AmfiNavParser`
+- [x] `ScenarioLoader` (test helper in Core.Tests, or a `Core/Testing` folder): reads `samples/scenarios/*.json` + the instruments CSV + the AMFI sample into `PortfolioInput`
+- [x] All Core.Tests from doc 08 §1, **including every golden scenario**
 
 **Done when:** `dotnet test` is green, and each scenario's findings equal `expected.findings` exactly (rule, subject, severity, order) with the allocation matching to 1 dp.
 
