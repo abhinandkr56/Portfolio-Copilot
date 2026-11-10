@@ -19,4 +19,14 @@ public static class Ist
     }
 
     public static DateOnly ToIstDate(DateTimeOffset value) => DateOnly.FromDateTime(value.ToOffset(Offset).DateTime);
+
+    /// <summary>Kite access tokens expire around 06:00 IST: the first 06:00 IST strictly after <paramref name="createdUtc"/>, in UTC.</summary>
+    public static DateTimeOffset NextKiteExpiry(DateTimeOffset createdUtc)
+    {
+        var local = createdUtc.ToOffset(Offset);
+        var sixAm = new DateTimeOffset(local.Year, local.Month, local.Day, 6, 0, 0, Offset);
+        if (sixAm <= local)
+            sixAm = sixAm.AddDays(1);
+        return sixAm.ToUniversalTime();
+    }
 }

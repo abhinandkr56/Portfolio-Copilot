@@ -62,15 +62,25 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
+                    .AddSource("PortfolioCopilot") // Kite calls and (later) agent tool calls
                     .AddAspNetCoreInstrumentation(tracing =>
+                    {
                         // Exclude health check requests from tracing
                         tracing.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
-                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
-                    )
+                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath);
+                        // Never export query strings: /kite/callback carries request_token (doc 09).
+                        tracing.EnrichWithHttpRequest = (activity, _) => activity.SetTag("url.query", null);
+                    })
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
-                    .AddHttpClientInstrumentation();
+                    .AddHttpClientInstrumentation(http =>
+                        // Never export query strings: Kite logout carries access_token (doc 09).
+                        http.EnrichWithHttpRequestMessage = (activity, request) =>
+                        {
+                            if (request.RequestUri is { } uri)
+                                activity.SetTag("url.full", uri.GetLeftPart(UriPartial.Path));
+                        });
             });
 
         builder.AddOpenTelemetryExporters();

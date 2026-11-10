@@ -44,13 +44,13 @@ Docs: 05, 08 §1
 
 Docs: 04, 03 §Session, 09
 
-- [ ] MockKite: all routes from doc 04, scenario switching, failure injection, gzipped instruments CSV, auth header check, unexpected routes logged and 404
-- [ ] Api: `KiteClient` (typed `HttpClient`): exchange, logout, profile, holdings, MF holdings, SIPs, MF orders, instruments; envelope parsing; the error mapping table; one 429 retry; a 10-second timeout
-- [ ] `KiteSessionStore` (EF Core `KiteSessions`, Data Protection), with an expiry computed for 06:00 IST
-- [ ] `/kite/login` (with the `state` cookie), `/kite/callback`, `GET /api/session`, `POST /api/session/logout`
-- [ ] Logging redaction filter (doc 09)
-- [ ] EF Core migrations; apply them at startup in Development
-- [ ] Api.Tests: the login round trip, the expiry → 401, the rate-limit retry, the **write-guard test**
+- [x] MockKite: all routes from doc 04, scenario switching, failure injection, gzipped instruments CSV, auth header check, unexpected routes logged and 404
+- [x] Api: `KiteClient` (typed `HttpClient`): exchange, logout, profile, holdings, MF holdings, SIPs, MF orders, instruments; envelope parsing; the error mapping table; one 429 retry; a 10-second timeout
+- [x] `KiteSessionStore` (EF Core `KiteSessions`, Data Protection), with an expiry computed for 06:00 IST
+- [x] `/kite/login` (with the `state` cookie), `/kite/callback`, `GET /api/session`, `POST /api/session/logout`
+- [x] Logging redaction filter (doc 09)
+- [x] EF Core migrations; apply them at startup in Development
+- [x] Api.Tests: the login round trip, the expiry → 401, the rate-limit retry, the **write-guard test**
 
 **Done when:** in the AppHost, opening `http://localhost:5080/kite/login` lands on the Web app with `?connected=1`, `/api/session` shows `connected: true, mode: "Mock"`, and the tests are green.
 

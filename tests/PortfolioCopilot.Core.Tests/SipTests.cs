@@ -130,3 +130,14 @@ public class OrderingTests
             sorted.Select(f => $"{f.Rule}/{f.Subject}"));
     }
 }
+
+public class IstTests
+{
+    [Theory]
+    [InlineData("2026-11-10T03:30:00Z", "2026-11-11T00:30:00Z")] // 09:00 IST → next day 06:00 IST
+    [InlineData("2026-11-09T23:00:00Z", "2026-11-10T00:30:00Z")] // 04:30 IST → same day 06:00 IST
+    [InlineData("2026-11-10T00:30:00Z", "2026-11-11T00:30:00Z")] // exactly 06:00 IST → the next one
+    [InlineData("2026-12-31T20:00:00Z", "2027-01-01T00:30:00Z")] // 01:30 IST on 1 Jan
+    public void Kite_tokens_expire_at_the_next_six_am_ist(string created, string expires) =>
+        Assert.Equal(DateTimeOffset.Parse(expires), Ist.NextKiteExpiry(DateTimeOffset.Parse(created)));
+}

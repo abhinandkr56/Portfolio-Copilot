@@ -99,7 +99,10 @@ A minimal API that behaves like Kite, so everything is testable without credenti
 | `GET /portfolio/holdings`, `/mf/holdings`, `/mf/sips`, `/mf/orders` | arrays from the **current scenario** in the Kite envelope |
 | `GET /mf/instruments` | `samples/kite/mf-instruments.csv`, **gzipped**, `Content-Type: text/csv` |
 | `POST /__scenario/{name}` | switches the current scenario (`demo` by default; others from `samples/scenarios/*.json`) |
-| `POST /__fail/{mode}` | next request fails: `token` (403 TokenException), `ratelimit` (429), `down` (503), `none` |
+| `POST /__fail/{mode}?count=N` | the next N Kite requests (default 1) fail: `token` (403 TokenException), `ratelimit` (429), `down` (503), `none` clears it |
+| `POST /__reset` | back to `demo`, no failures, empty logs (tests) |
+| `GET /__requests` | the Kite requests received: method, path, status, and the checksum for `POST /session/token` (tests; doc 08's checksum echo, also sent as the `X-Mock-Checksum` header) |
+| `GET /__unexpected` | every request that hit no route (they're also logged as warnings and get 404) |
 
 Every data route requires `Authorization: token {key}:mock-access-token` and `X-Kite-Version: 3`. Otherwise it returns 403 `TokenException`, which tests the session-expiry path for real.
 
