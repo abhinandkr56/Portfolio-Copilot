@@ -1,0 +1,24 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PortfolioCopilot.Api\PortfolioCopilot.Api.csproj" />
+    <ProjectReference Include="..\PortfolioCopilot.MockKite\PortfolioCopilot.MockKite.csproj" />
+    <ProjectReference Include="..\PortfolioCopilot.NavSync\PortfolioCopilot.NavSync.csproj" />
+    <ProjectReference Include="..\..\tests\PortfolioCopilot.Evals\PortfolioCopilot.Evals.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.6.4" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.6.4" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <UserSecretsId>4f910327-0e58-45e7-9412-ffcd25481cd6</UserSecretsId>
+  </PropertyGroup>
+
+</Project>

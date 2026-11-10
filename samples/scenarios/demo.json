@@ -1,0 +1,238 @@
+{
+  "name": "demo",
+  "description": "Default mock portfolio: equity overweight, INFY concentrated, two Regular plans, a paused SIP and a failed SIP order.",
+  "today": "2026-11-10",
+  "profile": {
+    "user_id": "AB1234",
+    "user_name": "Demo User"
+  },
+  "plan": {
+    "targetAllocation": {
+      "Equity": 70,
+      "Debt": 20,
+      "Gold": 10
+    },
+    "driftBandPoints": 5,
+    "maxSingleStockPercent": 10,
+    "maxSingleFundPercent": 25,
+    "preferDirectPlans": true,
+    "monthlySipBudget": 40000,
+    "hybridEquityPercent": 65,
+    "assetClassOverrides": {
+      "GOLDBEES": "Gold"
+    },
+    "notes": "Emergency fund is held outside Zerodha. Long-term goal: 15 years."
+  },
+  "kite": {
+    "holdings": [
+      {
+        "tradingsymbol": "INFY",
+        "isin": "INETEST00001",
+        "exchange": "NSE",
+        "quantity": 12,
+        "average_price": 1400,
+        "last_price": 1500,
+        "pnl": 1200
+      },
+      {
+        "tradingsymbol": "TCS",
+        "isin": "INETEST00002",
+        "exchange": "NSE",
+        "quantity": 3,
+        "average_price": 3200,
+        "last_price": 3000,
+        "pnl": -600
+      },
+      {
+        "tradingsymbol": "HDFCBANK",
+        "isin": "INETEST00003",
+        "exchange": "NSE",
+        "quantity": 5,
+        "average_price": 1500,
+        "last_price": 1600,
+        "pnl": 500
+      },
+      {
+        "tradingsymbol": "ITC",
+        "isin": "INETEST00004",
+        "exchange": "NSE",
+        "quantity": 10,
+        "average_price": 450,
+        "last_price": 500,
+        "pnl": 500
+      },
+      {
+        "tradingsymbol": "GOLDBEES",
+        "isin": "INFTEST09901",
+        "exchange": "NSE",
+        "quantity": 50,
+        "average_price": 70,
+        "last_price": 80,
+        "pnl": 500
+      }
+    ],
+    "mfHoldings": [
+      {
+        "folio": "FOLIOTEST0001",
+        "fund": "Alpha Flexi Cap Fund - Regular Plan - Growth",
+        "tradingsymbol": "INFTEST00002",
+        "quantity": 400,
+        "average_price": 50,
+        "last_price": 55,
+        "last_price_date": "2026-11-07",
+        "pnl": 2000
+      },
+      {
+        "folio": "FOLIOTEST0002",
+        "fund": "Beta Large Cap Fund - Direct Plan - Growth",
+        "tradingsymbol": "INFTEST00003",
+        "quantity": 200,
+        "average_price": 75,
+        "last_price": 80,
+        "last_price_date": "2026-11-07",
+        "pnl": 1000
+      },
+      {
+        "folio": "FOLIOTEST0003",
+        "fund": "Delta Balanced Advantage Fund - Direct Plan - Growth",
+        "tradingsymbol": "INFTEST00007",
+        "quantity": 250,
+        "average_price": 36,
+        "last_price": 40,
+        "last_price_date": "2026-11-07",
+        "pnl": 1000
+      },
+      {
+        "folio": "FOLIOTEST0004",
+        "fund": "Gamma Short Duration Fund - Regular Plan - Growth",
+        "tradingsymbol": "INFTEST00006",
+        "quantity": 320,
+        "average_price": 24,
+        "last_price": 25,
+        "last_price_date": "2026-11-07",
+        "pnl": 320
+      }
+    ],
+    "mfSips": [
+      {
+        "sip_id": "SIPTEST001",
+        "tradingsymbol": "INFTEST00002",
+        "fund": "Alpha Flexi Cap Fund - Regular Plan - Growth",
+        "status": "ACTIVE",
+        "frequency": "monthly",
+        "instalment_amount": 10000,
+        "next_instalment": "2026-12-05",
+        "completed_instalments": 12
+      },
+      {
+        "sip_id": "SIPTEST002",
+        "tradingsymbol": "INFTEST00003",
+        "fund": "Beta Large Cap Fund - Direct Plan - Growth",
+        "status": "PAUSED",
+        "frequency": "monthly",
+        "instalment_amount": 5000,
+        "next_instalment": "2026-12-05",
+        "completed_instalments": 12
+      },
+      {
+        "sip_id": "SIPTEST003",
+        "tradingsymbol": "INFTEST00006",
+        "fund": "Gamma Short Duration Fund - Regular Plan - Growth",
+        "status": "ACTIVE",
+        "frequency": "weekly",
+        "instalment_amount": 1500,
+        "next_instalment": "2026-11-14",
+        "completed_instalments": 40
+      }
+    ],
+    "mfOrders": [
+      {
+        "order_id": "MFORDTEST001",
+        "tradingsymbol": "INFTEST00002",
+        "fund": "Alpha Flexi Cap Fund - Regular Plan - Growth",
+        "status": "REJECTED",
+        "status_message": "SIP: Insufficient balance.",
+        "variety": "sip",
+        "order_timestamp": "2026-11-05 10:00:00"
+      },
+      {
+        "order_id": "MFORDTEST002",
+        "tradingsymbol": "INFTEST00006",
+        "fund": "Gamma Short Duration Fund - Regular Plan - Growth",
+        "status": "COMPLETE",
+        "status_message": "",
+        "variety": "sip",
+        "order_timestamp": "2026-11-07 10:00:00"
+      },
+      {
+        "order_id": "MFORDTEST003",
+        "tradingsymbol": "INFTEST00003",
+        "fund": "Beta Large Cap Fund - Direct Plan - Growth",
+        "status": "REJECTED",
+        "status_message": "SIP: Insufficient balance.",
+        "variety": "sip",
+        "order_timestamp": "2026-10-20 10:00:00"
+      }
+    ]
+  },
+  "expected": {
+    "allocation": {
+      "Equity": 84.5,
+      "Debt": 11.5,
+      "Gold": 4.0
+    },
+    "ask": {
+      "message": "Should I sell INFY?",
+      "mustContain": [
+        "INFY",
+        "10"
+      ],
+      "mustNotContain": [
+        "you should sell",
+        "i recommend"
+      ]
+    },
+    "findings": [
+      {
+        "rule": "AllocationDrift",
+        "subject": "Equity",
+        "severity": "Act"
+      },
+      {
+        "rule": "StockConcentration",
+        "subject": "INFY",
+        "severity": "Act"
+      },
+      {
+        "rule": "AllocationDrift",
+        "subject": "Debt",
+        "severity": "Watch"
+      },
+      {
+        "rule": "AllocationDrift",
+        "subject": "Gold",
+        "severity": "Watch"
+      },
+      {
+        "rule": "RegularPlan",
+        "subject": "Alpha Flexi Cap Fund - Regular Plan - Growth",
+        "severity": "Watch"
+      },
+      {
+        "rule": "RegularPlan",
+        "subject": "Gamma Short Duration Fund - Regular Plan - Growth",
+        "severity": "Watch"
+      },
+      {
+        "rule": "SipNotActive",
+        "subject": "Beta Large Cap Fund - Direct Plan - Growth",
+        "severity": "Watch"
+      },
+      {
+        "rule": "SipFailedOrder",
+        "subject": "Alpha Flexi Cap Fund - Regular Plan - Growth",
+        "severity": "Watch"
+      }
+    ]
+  }
+}

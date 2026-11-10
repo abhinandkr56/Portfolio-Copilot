@@ -1,0 +1,30 @@
+Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Net Asset Value;Date
+
+Open Ended Schemes(Equity Scheme - Flexi Cap Fund)
+
+Alpha Mutual Fund
+
+900001;INFTEST00001;-;Alpha Flexi Cap Fund - Direct Plan - Growth;50.0000;07-Nov-2026
+900002;INFTEST00002;-;Alpha Flexi Cap Fund - Regular Plan - Growth;55.0000;07-Nov-2026
+900003;INFTEST00008;INFTEST00009;Alpha Flexi Cap Fund - Direct Plan - IDCW;21.4500;07-Nov-2026
+
+Open Ended Schemes(Equity Scheme - Large Cap Fund)
+
+Beta Mutual Fund
+
+900011;INFTEST00003;-;Beta Large Cap Fund - Direct Plan - Growth;80.0000;07-Nov-2026
+900012;INFTEST00004;-;Beta Large Cap Fund - Regular Plan - Growth;80.0000;07-Nov-2026
+900013;INFTEST00010;-;Beta Large Cap Fund - Segregated Portfolio;N.A.;07-Nov-2026
+
+Open Ended Schemes(Debt Scheme - Short Duration Fund)
+
+Gamma Mutual Fund
+
+900021;INFTEST00005;-;Gamma Short Duration Fund - Direct Plan - Growth;25.0000;07-Nov-2026
+900022;INFTEST00006;-;Gamma Short Duration Fund - Regular Plan - Growth;25.0000;07-Nov-2026
+
+Open Ended Schemes(Hybrid Scheme - Dynamic Asset Allocation or Balanced Advantage)
+
+Delta Mutual Fund
+
+900031;INFTEST00007;-;Delta Balanced Advantage Fund - Direct Plan - Growth;40.0000;07-Nov-2026

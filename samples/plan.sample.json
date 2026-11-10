@@ -1,0 +1,17 @@
+{
+  "targetAllocation": {
+    "Equity": 70,
+    "Debt": 20,
+    "Gold": 10
+  },
+  "driftBandPoints": 5,
+  "maxSingleStockPercent": 10,
+  "maxSingleFundPercent": 25,
+  "preferDirectPlans": true,
+  "monthlySipBudget": 40000,
+  "hybridEquityPercent": 65,
+  "assetClassOverrides": {
+    "GOLDBEES": "Gold"
+  },
+  "notes": "Emergency fund is held outside Zerodha. Long-term goal: 15 years."
+}

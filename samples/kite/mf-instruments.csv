@@ -1,0 +1,8 @@
+tradingsymbol,amc,name,purchase_allowed,redemption_allowed,minimum_purchase_amount,purchase_amount_multiplier,minimum_additional_purchase_amount,minimum_redemption_quantity,redemption_quantity_multiplier,dividend_type,scheme_type,plan,settlement_type,last_price,last_price_date
+INFTEST00001,ALPHAMF_MF,Alpha Flexi Cap Fund - Direct Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,equity,direct,T3,50.0,2026-11-07
+INFTEST00002,ALPHAMF_MF,Alpha Flexi Cap Fund - Regular Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,equity,regular,T3,55.0,2026-11-07
+INFTEST00003,BETAMF_MF,Beta Large Cap Fund - Direct Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,equity,direct,T3,80.0,2026-11-07
+INFTEST00004,BETAMF_MF,Beta Large Cap Fund - Regular Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,equity,regular,T3,80.0,2026-11-07
+INFTEST00005,GAMMAMF_MF,Gamma Short Duration Fund - Direct Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,debt,direct,T3,25.0,2026-11-07
+INFTEST00006,GAMMAMF_MF,Gamma Short Duration Fund - Regular Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,debt,regular,T3,25.0,2026-11-07
+INFTEST00007,DELTAMF_MF,Delta Balanced Advantage Fund - Direct Plan - Growth,1,1,5000.0,1.0,1000.0,0.001,0.001,growth,balanced,direct,T3,40.0,2026-11-07

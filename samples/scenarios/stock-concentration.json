@@ -1,0 +1,105 @@
+{
+  "name": "stock-concentration",
+  "description": "INFY at 22% of the portfolio: above 1.5x the 10% cap, so Act.",
+  "today": "2026-11-10",
+  "profile": {
+    "user_id": "AB1234",
+    "user_name": "Demo User"
+  },
+  "plan": {
+    "targetAllocation": {
+      "Equity": 70,
+      "Debt": 20,
+      "Gold": 10
+    },
+    "driftBandPoints": 5,
+    "maxSingleStockPercent": 10,
+    "maxSingleFundPercent": 25,
+    "preferDirectPlans": true,
+    "monthlySipBudget": 40000,
+    "hybridEquityPercent": 65,
+    "assetClassOverrides": {
+      "GOLDBEES": "Gold"
+    },
+    "notes": "Emergency fund is held outside Zerodha. Long-term goal: 15 years."
+  },
+  "kite": {
+    "holdings": [
+      {
+        "tradingsymbol": "INFY",
+        "isin": "INETEST00001",
+        "exchange": "NSE",
+        "quantity": 16,
+        "average_price": 1300,
+        "last_price": 1375,
+        "pnl": 1200
+      },
+      {
+        "tradingsymbol": "TCS",
+        "isin": "INETEST00002",
+        "exchange": "NSE",
+        "quantity": 4,
+        "average_price": 2100,
+        "last_price": 2000,
+        "pnl": -400
+      },
+      {
+        "tradingsymbol": "GOLDBEES",
+        "isin": "INFTEST09901",
+        "exchange": "NSE",
+        "quantity": 125,
+        "average_price": 70,
+        "last_price": 80,
+        "pnl": 1250
+      }
+    ],
+    "mfHoldings": [
+      {
+        "folio": "FOLIOTEST0014",
+        "fund": "Alpha Flexi Cap Fund - Direct Plan - Growth",
+        "tradingsymbol": "INFTEST00001",
+        "quantity": 400,
+        "average_price": 42,
+        "last_price": 50,
+        "last_price_date": "2026-11-07",
+        "pnl": 3200
+      },
+      {
+        "folio": "FOLIOTEST0015",
+        "fund": "Beta Large Cap Fund - Direct Plan - Growth",
+        "tradingsymbol": "INFTEST00003",
+        "quantity": 250,
+        "average_price": 70,
+        "last_price": 80,
+        "last_price_date": "2026-11-07",
+        "pnl": 2500
+      },
+      {
+        "folio": "FOLIOTEST0016",
+        "fund": "Gamma Short Duration Fund - Direct Plan - Growth",
+        "tradingsymbol": "INFTEST00005",
+        "quantity": 800,
+        "average_price": 23,
+        "last_price": 25,
+        "last_price_date": "2026-11-07",
+        "pnl": 1600
+      }
+    ],
+    "mfSips": [],
+    "mfOrders": []
+  },
+  "expected": {
+    "allocation": {
+      "Equity": 70.0,
+      "Debt": 20.0,
+      "Gold": 10.0
+    },
+    "findings": [
+      {
+        "rule": "StockConcentration",
+        "subject": "INFY",
+        "severity": "Act"
+      }
+    ]
+  }
+}
