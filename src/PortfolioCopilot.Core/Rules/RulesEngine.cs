@@ -186,13 +186,7 @@ public static class RulesEngine
 
     private static IEnumerable<Finding> SipFailedOrders(IReadOnlyList<MfOrder> orders, TimeProvider time)
     {
-        var now = time.GetUtcNow();
-        var failed = orders
-            .Where(o => string.Equals(o.Variety, "sip", StringComparison.OrdinalIgnoreCase))
-            .Where(o => string.Equals(o.Status, "REJECTED", StringComparison.OrdinalIgnoreCase)
-                     || string.Equals(o.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
-            .Where(o => o.OrderTimestamp > now - FailedOrderWindow && o.OrderTimestamp <= now)
-            .GroupBy(o => o.Isin, StringComparer.OrdinalIgnoreCase);
+        var failed = RecentFailedSipOrders(orders, time).GroupBy(o => o.Isin, StringComparer.OrdinalIgnoreCase);
         foreach (var g in failed)
         {
             var last = g.OrderByDescending(o => o.OrderTimestamp).First();
@@ -208,6 +202,19 @@ public static class RulesEngine
                 count, count == 1 ? "" : "s", last.Fund, lastDate, last.StatusMessage).TrimEnd(' ', ':');
             yield return new Finding(RuleNames.SipFailedOrder, last.Fund, Severity.Watch, evidence, message, "Check SIP mandate");
         }
+    }
+
+    /// <summary>SIP orders (variety "sip") that were REJECTED or CANCELLED in the last 7 days, newest first.</summary>
+    public static IReadOnlyList<MfOrder> RecentFailedSipOrders(IReadOnlyList<MfOrder> orders, TimeProvider time)
+    {
+        var now = time.GetUtcNow();
+        return orders
+            .Where(o => string.Equals(o.Variety, "sip", StringComparison.OrdinalIgnoreCase))
+            .Where(o => string.Equals(o.Status, "REJECTED", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(o.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
+            .Where(o => o.OrderTimestamp > now - FailedOrderWindow && o.OrderTimestamp <= now)
+            .OrderByDescending(o => o.OrderTimestamp)
+            .ToList();
     }
 
     private static IEnumerable<Finding> SipOverBudget(ComputedPortfolio p, Plan plan)

@@ -22,7 +22,7 @@ public class PlanValidatorTests
 
     [Fact]
     public void Negative_target_is_rejected() =>
-        Assert.Contains("targetAllocation.Gold", PlanValidator.Validate(Build.Plan(90, 20, -10)).Keys);
+        Assert.Contains("Gold must be 0 or more.", PlanValidator.Validate(Build.Plan(90, 20, -10))["targetAllocation"]);
 
     [Fact]
     public void Hybrid_target_is_rejected()
@@ -35,7 +35,8 @@ public class PlanValidatorTests
 
     [Fact]
     public void Hybrid_override_is_rejected() =>
-        Assert.Contains("assetClassOverrides.XYZ", PlanValidator.Validate(Build.Plan(overrides: new() { ["XYZ"] = AssetClass.Hybrid })).Keys);
+        Assert.Equal(["XYZ: Hybrid is not allowed; use Equity, Debt, Gold or Other."],
+            PlanValidator.Validate(Build.Plan(overrides: new() { ["XYZ"] = AssetClass.Hybrid }))["assetClassOverrides"]);
 
     [Theory]
     [InlineData(0.9, 10, 25, 0, 65, "driftBandPoints")]

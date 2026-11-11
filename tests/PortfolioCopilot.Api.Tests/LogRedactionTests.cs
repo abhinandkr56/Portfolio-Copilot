@@ -35,7 +35,7 @@ public class LogRedactionTests(ApiFixture fx) : IAsyncLifetime
         await fx.LoginAsync(browser);
         await browser.GetAsync("/api/session");
         await fx.MockClient().PostAsync("/__fail/token", null);
-        await browser.GetAsync("/test/kite/holdings");
+        await browser.GetAsync("/api/holdings");
         await fx.LoginAsync(browser);
         await browser.PostAsync("/api/session/logout", null);
 

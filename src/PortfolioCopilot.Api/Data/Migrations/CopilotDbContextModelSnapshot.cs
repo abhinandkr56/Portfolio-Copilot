@@ -65,6 +65,107 @@ namespace PortfolioCopilot.Api.Data.Migrations
 
                     b.ToTable("KiteSessions", (string)null);
                 });
+
+            modelBuilder.Entity("PortfolioCopilot.Api.Data.NavRow", b =>
+                {
+                    b.Property<string>("Isin")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Nav")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<DateOnly>("NavDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SchemeCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SchemeName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Isin");
+
+                    b.ToTable("NavRecords", (string)null);
+                });
+
+            modelBuilder.Entity("PortfolioCopilot.Api.Data.PlanRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Json")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("SavedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Plans", (string)null);
+                });
+
+            modelBuilder.Entity("PortfolioCopilot.Api.Data.ReviewRunRow", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AnswerText")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FindingsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("NumberCheckPassed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Provider")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("Utc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReviewRuns", (string)null);
+                });
+
+            modelBuilder.Entity("PortfolioCopilot.Api.Data.SnapshotRow", b =>
+                {
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Json")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Date");
+
+                    b.ToTable("Snapshots", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }

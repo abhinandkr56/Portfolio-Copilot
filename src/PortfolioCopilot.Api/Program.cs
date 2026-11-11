@@ -1,10 +1,13 @@
 using System.Net;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PortfolioCopilot.Api.Data;
 using PortfolioCopilot.Api.Kite;
 using PortfolioCopilot.Api.Logging;
+using PortfolioCopilot.Api.Portfolio;
+using PortfolioCopilot.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,24 @@ builder.Services.AddHttpClient<KiteClient>((sp, http) =>
     .RemoveAllResilienceHandlers(); // KiteClient does its own single 429 retry (doc 04); the defaults would retry writes too
 #pragma warning restore EXTEXP0001
 
+// Mock mode only: MockKite's test controls (/__scenario). Not KiteClient, whose read-only guard stays strict.
+builder.Services.AddHttpClient<MockControl>((sp, http) =>
+{
+    var o = sp.GetRequiredService<IOptions<KiteOptions>>().Value;
+    http.BaseAddress = new Uri(o.MockBaseUrl.TrimEnd('/') + "/");
+    http.Timeout = TimeSpan.FromSeconds(10);
+});
+
+builder.Services.AddSingleton(sp => ClassificationOptions(sp.GetRequiredService<IConfiguration>()));
+builder.Services.AddScoped<PlanStore>();
+builder.Services.AddScoped<NavStore>();
+builder.Services.AddSingleton<InstrumentsCache>();
+builder.Services.AddScoped<ReviewClock>();
+builder.Services.AddScoped<PortfolioService>();
+
+builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddOpenApi();
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<KiteExceptionHandler>();
 
@@ -51,13 +72,33 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     await scope.ServiceProvider.GetRequiredService<CopilotDbContext>().Database.MigrateAsync();
 }
+if (app.Configuration.GetValue("Database:SeedOnStartup", true))
+    await DataSeeder.SeedAsync(app.Services);
 
 app.MapDefaultEndpoints();
 
-app.MapGet("/api/ping", () => TypedResults.Ok(new PingResponse(true)));
+app.MapGet("/api/ping", () => TypedResults.Ok(new PingResponse(true))).WithTags("Health");
 app.MapKiteEndpoints();
+app.MapPortfolioEndpoints();
+
+var isDevLike = app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing");
+if (isDevLike)
+{
+    app.MapOpenApi();                                                         // /openapi/v1.json
+    app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Portfolio Copilot")); // /swagger
+    app.MapDevEndpoints(app.Services.GetRequiredService<IOptions<KiteOptions>>().Value);
+}
 
 app.Run();
+
+static CoreOptions ClassificationOptions(IConfiguration config)
+{
+    var section = config.GetSection("Classification");
+    var map = section.GetSection("SchemeTypeMap").GetChildren()
+        .ToDictionary(c => c.Key, c => Enum.Parse<AssetClass>(c.Value!, ignoreCase: true), StringComparer.OrdinalIgnoreCase);
+    return new CoreOptions(map.Count > 0 ? map : CoreOptions.Default.SchemeTypeMap,
+        section.GetValue("NavStaleDays", CoreOptions.Default.NavStaleDays));
+}
 
 public sealed record PingResponse(bool Ok);
 

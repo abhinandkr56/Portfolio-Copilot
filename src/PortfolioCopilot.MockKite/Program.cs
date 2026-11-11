@@ -137,6 +137,9 @@ app.MapPost("/__fail/{mode}", (string mode, int? count, MockState s) =>
     return Results.Ok(new { mode, count = mode == "none" ? 0 : Math.Max(1, count ?? 1) });
 });
 
+app.MapGet("/__scenario", (MockState s) =>
+    Results.Ok(new { scenario = s.ScenarioName, today = s.Scenario["today"]?.GetValue<string>() }));
+
 app.MapPost("/__reset", (MockState s) => { s.Reset(); return Results.Ok(); });
 app.MapGet("/__requests", (MockState s) => Results.Ok(s.Requests.ToArray()));
 app.MapGet("/__unexpected", (MockState s) => Results.Ok(s.Unexpected.ToArray()));

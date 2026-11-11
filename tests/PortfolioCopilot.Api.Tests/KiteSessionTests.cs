@@ -118,10 +118,10 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
     {
         var browser = fx.Browser();
         await fx.LoginAsync(browser);
-        Assert.Equal(HttpStatusCode.OK, (await browser.GetAsync("/test/kite/holdings")).StatusCode);
 
+        // Kite data is cached for 5 minutes, so fail the very first fetch.
         await fx.MockClient().PostAsync("/__fail/token", null);
-        var response = await browser.GetAsync("/test/kite/holdings");
+        var response = await browser.GetAsync("/api/holdings");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -132,7 +132,7 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
     [Fact]
     public async Task No_session_is_401_without_calling_kite()
     {
-        var response = await fx.Browser().GetAsync("/test/kite/holdings");
+        var response = await fx.Browser().GetAsync("/api/holdings");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Empty(fx.KiteTraffic.Requests);
@@ -150,7 +150,7 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
         }
 
         Assert.False((await SessionAsync(browser)).Connected);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await browser.GetAsync("/test/kite/holdings")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await browser.GetAsync("/api/holdings")).StatusCode);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
         fx.KiteTraffic.Requests.Clear();
 
         await fx.MockClient().PostAsync("/__fail/ratelimit?count=2", null);
-        var response = await browser.GetAsync("/test/kite/holdings");
+        var response = await browser.GetAsync("/api/holdings");
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal("kite-unavailable", (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("type").GetString());
@@ -177,10 +177,10 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
         fx.KiteTraffic.Requests.Clear();
 
         await fx.MockClient().PostAsync("/__fail/ratelimit", null);
-        var response = await browser.GetAsync("/test/kite/holdings");
+        var response = await browser.GetAsync("/api/holdings");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(5, (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("count").GetInt32());
+        Assert.Equal(5, (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("stocks").GetArrayLength());
         Assert.Equal(2, fx.KiteTraffic.Requests.Count(r => r.Path == "/portfolio/holdings"));
     }
 
@@ -192,7 +192,7 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
         fx.KiteTraffic.Requests.Clear();
 
         await fx.MockClient().PostAsync("/__fail/down", null);
-        var response = await browser.GetAsync("/test/kite/holdings");
+        var response = await browser.GetAsync("/api/holdings");
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Single(fx.KiteTraffic.Requests);

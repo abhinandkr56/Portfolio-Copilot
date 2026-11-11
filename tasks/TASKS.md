@@ -60,15 +60,15 @@ Docs: 04, 03 §Session, 09
 
 Docs: 03, 05
 
-- [ ] `PortfolioService`: fetch from Kite (with a 5-minute `IMemoryCache`) + instruments (24 h) + NAVs from the DB → `PortfolioInput`
-- [ ] Seed `Plans` from `samples/plan.sample.json`; `GET/PUT /api/plan` with validation
-- [ ] `POST /api/nav/import` (Dev) and an auto-import of `samples/amfi/NAVAll.sample.txt` at startup in Mock mode when `NavRecords` is empty
-- [ ] `GET /api/holdings`, `/api/sips`, `/api/allocation`, `POST /api/review` (`explain:false` only for now)
-- [ ] `POST /api/dev/scenario/{name}` (Mock only)
-- [ ] Daily snapshot: the first successful `/api/holdings` of the day writes a `Snapshots` row
-- [ ] `ReviewRuns` audit row for each review
-- [ ] OpenAPI + Swagger/Scalar in Development
-- [ ] Api.Tests: every scenario through `/api/review` equals `expected.findings`
+- [x] `PortfolioService`: fetch from Kite (with a 5-minute `IMemoryCache`) + instruments (24 h) + NAVs from the DB → `PortfolioInput`
+- [x] Seed `Plans` from `samples/plan.sample.json`; `GET/PUT /api/plan` with validation
+- [x] `POST /api/nav/import` (Dev) and an auto-import of `samples/amfi/NAVAll.sample.txt` at startup in Mock mode when `NavRecords` is empty
+- [x] `GET /api/holdings`, `/api/sips`, `/api/allocation`, `POST /api/review` (`explain:false` only for now)
+- [x] `POST /api/dev/scenario/{name}` (Mock only)
+- [x] Daily snapshot: the first successful `/api/holdings` of the day writes a `Snapshots` row
+- [x] `ReviewRuns` audit row for each review
+- [x] OpenAPI + Swagger/Scalar in Development
+- [x] Api.Tests: every scenario through `/api/review` equals `expected.findings`
 
 **Done when:** in Swagger, `/api/review` on the `demo` scenario returns the 8 expected findings in order, and the tests are green.
 

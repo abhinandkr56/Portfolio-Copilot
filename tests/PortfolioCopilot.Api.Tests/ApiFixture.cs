@@ -3,8 +3,6 @@ extern alias mockkite;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -67,6 +65,7 @@ public sealed class ApiFixture : IAsyncLifetime
     public const string Origin = "http://127.0.0.1:5080";
 
     private readonly SqliteConnection _db = new("DataSource=:memory:");
+    private readonly string _cacheDir = Path.Combine(Path.GetTempPath(), "pc-tests-" + Guid.NewGuid().ToString("N"));
     private WebApplicationFactory<Program>? _api;
 
     public MockKiteFactory Mock { get; } = new();
@@ -85,6 +84,8 @@ public sealed class ApiFixture : IAsyncLifetime
             b.UseEnvironment("Testing");
             b.UseSetting("ConnectionStrings:copilotdb", "Host=unused;Database=unused");
             b.UseSetting("Kite:Mode", "Mock");
+            b.UseSetting("Kite:InstrumentsCacheDir", _cacheDir);
+            b.UseSetting("Database:SeedOnStartup", "false");
             b.ConfigureLogging(l => l.AddProvider(Logs));
             b.ConfigureTestServices(services =>
             {
@@ -95,12 +96,13 @@ public sealed class ApiFixture : IAsyncLifetime
                 services.AddDbContext<CopilotDbContext>(o => o.UseSqlite(_db));
 
                 services.AddHttpClient<KiteClient>().ConfigurePrimaryHttpMessageHandler(() => KiteTraffic);
-                services.AddTransient<IStartupFilter, KiteProbeStartupFilter>();
+                services.AddHttpClient<PortfolioCopilot.Api.Portfolio.MockControl>().ConfigurePrimaryHttpMessageHandler(() => Mock.Server.CreateHandler());
             });
         });
 
-        using var scope = _api.Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<CopilotDbContext>().Database.EnsureCreatedAsync();
+        using (var scope = _api.Services.CreateScope())
+            await scope.ServiceProvider.GetRequiredService<CopilotDbContext>().Database.EnsureCreatedAsync();
+        await PortfolioCopilot.Api.Portfolio.DataSeeder.SeedAsync(_api.Services);
     }
 
     public HttpClient Browser() =>
@@ -109,9 +111,11 @@ public sealed class ApiFixture : IAsyncLifetime
     public HttpClient MockClient() =>
         Mock.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, BaseAddress = new Uri("http://127.0.0.1:5100") });
 
-    /// <summary>Clears the session, the mock's scenario/failures/logs and the recorded traffic.</summary>
+    /// <summary>Back to the demo scenario and plan, no session, no cached data, no mock failures, empty traffic logs.</summary>
     public async Task ResetAsync()
     {
+        (await MockClient().PostAsync("/__reset", null)).EnsureSuccessStatusCode();
+        (await Browser().PostAsync("/api/dev/scenario/demo", null)).EnsureSuccessStatusCode();
         using (var scope = Api.Services.CreateScope())
         {
             await scope.ServiceProvider.GetRequiredService<KiteSessionStore>().DeleteAsync();
@@ -119,6 +123,7 @@ public sealed class ApiFixture : IAsyncLifetime
         }
         (await MockClient().PostAsync("/__reset", null)).EnsureSuccessStatusCode();
         KiteTraffic.Requests.Clear();
+        Logs.Lines.Clear();
     }
 
     /// <summary>Walks /kite/login → MockKite /connect/login → /kite/callback with one browser and returns the final redirect.</summary>
@@ -148,29 +153,9 @@ public sealed class ApiFixture : IAsyncLifetime
             await _api.DisposeAsync();
         await Mock.DisposeAsync();
         await _db.DisposeAsync();
+        if (Directory.Exists(_cacheDir))
+            Directory.Delete(_cacheDir, recursive: true);
     }
-}
-
-/// <summary>
-/// Test-only route <c>GET /test/kite/holdings</c>, added after the app's own pipeline so it runs inside the real
-/// exception handler. It lets the tests drive the Kite error mapping before Phase 3 adds /api/holdings.
-/// </summary>
-public sealed class KiteProbeStartupFilter : IStartupFilter
-{
-    public Action<Microsoft.AspNetCore.Builder.IApplicationBuilder> Configure(Action<Microsoft.AspNetCore.Builder.IApplicationBuilder> next) => app =>
-    {
-        next(app);
-        app.Use(async (ctx, nextMiddleware) =>
-        {
-            if (ctx.Request.Path != "/test/kite/holdings")
-            {
-                await nextMiddleware(ctx);
-                return;
-            }
-            var holdings = await ctx.RequestServices.GetRequiredService<KiteClient>().GetHoldingsAsync(ctx.RequestAborted);
-            await ctx.Response.WriteAsJsonAsync(new { count = holdings.Count });
-        });
-    };
 }
 
 [CollectionDefinition(Name)]

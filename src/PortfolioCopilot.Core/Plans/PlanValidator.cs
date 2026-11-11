@@ -1,6 +1,9 @@
 namespace PortfolioCopilot.Core;
 
-/// <summary>Plan validation for <c>PUT /api/plan</c> (doc 05 §Plan validation). Keys are camelCase field names.</summary>
+/// <summary>
+/// Plan validation for <c>PUT /api/plan</c> (doc 05 §Plan validation). Keys are the plan's camelCase field names
+/// (no dotted sub-keys: ASP.NET camel-cases each segment, which would turn "GOLDBEES" into "goldbees"); the message names the entry.
+/// </summary>
 public static class PlanValidator
 {
     private static readonly AssetClass[] AllowedClasses = [AssetClass.Equity, AssetClass.Debt, AssetClass.Gold, AssetClass.Other];
@@ -26,7 +29,7 @@ public static class PlanValidator
                 if (!AllowedClasses.Contains(cls))
                     Add("targetAllocation", $"{cls} is not allowed; use Equity, Debt, Gold or Other.");
                 if (value < 0)
-                    Add($"targetAllocation.{cls}", "Must be 0 or more.");
+                    Add("targetAllocation", $"{cls} must be 0 or more.");
             }
             var sum = plan.TargetAllocation.Values.Sum();
             if (Math.Abs(sum - 100) > 0.01m)
@@ -49,7 +52,7 @@ public static class PlanValidator
             if (string.IsNullOrWhiteSpace(key))
                 Add("assetClassOverrides", "An override needs a symbol or ISIN.");
             if (!AllowedClasses.Contains(cls))
-                Add($"assetClassOverrides.{key}", $"{cls} is not allowed; use Equity, Debt, Gold or Other.");
+                Add("assetClassOverrides", $"{key}: {cls} is not allowed; use Equity, Debt, Gold or Other.");
         }
 
         return errors.ToDictionary(e => e.Key, e => e.Value.ToArray());

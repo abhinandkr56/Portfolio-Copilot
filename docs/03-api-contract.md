@@ -7,7 +7,7 @@ All JSON is camelCase. All `/api/*` errors use RFC 7807 `ProblemDetails`. The Ne
 | No Kite session, or the session expired | 401 | `kite-session-required` | show the **Connect Zerodha** banner |
 | Kite rate limit (429) or Kite is down | 503 | `kite-unavailable` | show "Zerodha is not responding, try again in a minute" |
 
-Enable OpenAPI (`MapOpenApi`) and Swagger UI or Scalar in Development.
+Enable OpenAPI (`MapOpenApi`) and Swagger UI or Scalar in Development. (Built: `/openapi/v1.json` and Swagger UI at `/swagger`.)
 
 ---
 
@@ -40,13 +40,14 @@ Calls Kite `DELETE /session/token` (best effort), deletes the stored session, re
   "totalValue": 100000.00,
   "stocks": [ { "symbol": "INFY", "isin": "INETEST00001", "exchange": "NSE", "quantity": 12,
                 "averagePrice": 1400.00, "lastPrice": 1500.00, "value": 18000.00, "pnl": 1200.00,
-                "assetClass": "Equity", "percentOfTotal": 18.0 } ],
+                "assetClass": "Equity", "assetClassLabel": "Equity", "percentOfTotal": 18.0 } ],
   "funds":  [ { "fund": "Alpha Flexi Cap Fund - Regular Plan - Growth", "isin": "INFTEST00002",
                 "folioMasked": "****0884", "quantity": 400, "averagePrice": 50.00, "lastPrice": 55.00,
                 "lastPriceDate": "2026-11-07", "value": 22000.00, "pnl": 2000.00,
-                "assetClass": "Equity", "plan": "Regular", "percentOfTotal": 22.0 } ]
+                "assetClass": "Equity", "assetClassLabel": "Equity", "plan": "Regular", "percentOfTotal": 22.0 } ]
 }
 ```
+`assetClassLabel` is the display text, e.g. `"Hybrid (65/35)"` for a hybrid fund (from the plan's `hybridEquityPercent`), so the frontend never computes it. `value` is rounded to 2 dp and `percentOfTotal` to 1 dp.
 
 ### `GET /api/sips`
 ```json
@@ -72,6 +73,7 @@ Always return Equity, Debt and Gold in that order, then Other only when it's non
 ### `GET /api/plan` → the `Plan` record (doc 05)
 ### `PUT /api/plan`
 Body: `Plan`. Validates (doc 05 §Plan validation). 400 with field errors, or 200 with the saved plan.
+Error keys are the plan's top-level field names (`targetAllocation`, `driftBandPoints`, `assetClassOverrides`, …); the message names the entry, e.g. `"GOLDBEES: Hybrid is not allowed; …"`.
 
 ---
 
@@ -124,4 +126,6 @@ Conversation history is kept in memory per `conversationId` (last 20 messages, 2
 Body: `{ "path": "samples/amfi/NAVAll.sample.txt" }`. Imports a NAV file from disk (used by tests and mock mode). Returns `{ "imported": 12, "navDate": "2026-11-07" }`.
 
 ### Mock-only: `POST /api/dev/scenario/{name}`
-Only when `Kite:Mode=Mock`. Forwards to MockKite `POST /__scenario/{name}` and loads the scenario's plan into `Plans`, so the Evals can switch portfolios. Clears the holdings cache.
+Only when `Kite:Mode=Mock`. Forwards to MockKite `POST /__scenario/{name}` and loads the scenario's plan into `Plans`, so the Evals can switch portfolios. Clears the holdings cache. Returns `{ "scenario": "demo", "today": "2026-11-10" }`; 404 for an unknown name.
+
+In Mock mode the rules run **as of the current scenario's `today`** (12:00 IST), so a scenario gives the same findings on any calendar day. `asOfUtc` stays the real fetch time. Live mode uses the real clock.

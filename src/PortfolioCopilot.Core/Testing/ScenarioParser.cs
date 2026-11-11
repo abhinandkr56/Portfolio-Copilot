@@ -28,6 +28,14 @@ public static class ScenarioParser
     public static Plan ParsePlan(string json) =>
         JsonSerializer.Deserialize<Plan>(json, JsonOptions) ?? throw new FormatException("The plan JSON is empty.");
 
+    /// <summary>Just the scenario's plan and <c>today</c>, without the Kite data.</summary>
+    public static (Plan Plan, DateOnly Today) ParseHeader(string scenarioJson)
+    {
+        var header = JsonSerializer.Deserialize<ScenarioHeader>(scenarioJson, JsonOptions)
+                     ?? throw new FormatException("The scenario JSON is empty.");
+        return (header.Plan, DateOnly.ParseExact(header.Today, "yyyy-MM-dd", CultureInfo.InvariantCulture));
+    }
+
     public static Scenario Parse(string scenarioJson, string instrumentsCsv, string navText)
     {
         var file = JsonSerializer.Deserialize<ScenarioFile>(scenarioJson, JsonOptions)
@@ -63,6 +71,8 @@ public static class ScenarioParser
 
     private static DateOnly? ParseDate(string? text) =>
         string.IsNullOrWhiteSpace(text) ? null : DateOnly.ParseExact(text.Trim()[..10], "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private sealed record ScenarioHeader(string Today, Plan Plan);
 
     // Kite field names are snake_case in the scenario files; the rest of the file is camelCase.
     private sealed record ScenarioFile(string Name, string? Description, string Today, Plan Plan, KiteData Kite, ExpectedData Expected);

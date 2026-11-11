@@ -14,6 +14,10 @@ public sealed class KiteOptions
     public string WebAppUrl { get; set; } = "http://127.0.0.1:3000";
     public int CacheSeconds { get; set; } = 300;
 
+    /// <summary>Where the 24-hour MF instruments CSV is kept on disk.</summary>
+    public string InstrumentsCacheDir { get; set; } =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PortfolioCopilot", "cache");
+
     public bool IsMock => string.Equals(Mode, "Mock", StringComparison.OrdinalIgnoreCase);
 
     public string BaseUrl => IsMock ? MockBaseUrl : LiveBaseUrl;
