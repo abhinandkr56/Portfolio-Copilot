@@ -61,19 +61,32 @@ public static class PortfolioEndpoints
         return ContractMapper.Allocation(s.Computed, portfolio.Evaluate(s), s.AsOfUtc);
     }
 
-    /// <summary>Runs every rule (deterministic) and audits the run. <c>explain: true</c> arrives in Phase 5.</summary>
+    /// <summary>
+    /// Runs every rule (deterministic) and audits the run. With <c>explain: true</c> the AI words a summary of these
+    /// same findings (doc 06); if the AI call fails, the findings still come back with <c>ai.error</c> set.
+    /// </summary>
     private static async Task<PortfolioReview> PostReview(ReviewRequest? request, PortfolioService portfolio,
-        CopilotDbContext db, TimeProvider time, CancellationToken ct)
+        Ai.ExplainService explainer, CopilotDbContext db, TimeProvider time, CancellationToken ct)
     {
         var s = await portfolio.GetAsync(ct);
         var findings = portfolio.Evaluate(s);
         var review = ContractMapper.Review(s.Computed, findings, s.AsOfUtc);
 
+        if (request?.Explain == true)
+        {
+            var (summary, ai) = await explainer.ExplainAsync(s.Input.Plan, review, ct);
+            review = review with { Summary = summary, Ai = ai };
+        }
+
         db.ReviewRuns.Add(new ReviewRunRow
         {
             Utc = time.GetUtcNow(),
             Kind = "review",
+            Provider = review.Ai?.Provider,
+            Model = review.Ai?.Model,
             FindingsJson = JsonSerializer.Serialize(review.Findings, PlanStore.Json),
+            AnswerText = review.Summary,
+            NumberCheckPassed = review.Ai?.NumberCheckPassed,
         });
         await db.SaveChangesAsync(ct);
         return review;

@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PortfolioCopilot.Api.Kite;
 
-/// <summary>Maps Kite exceptions to ProblemDetails (doc 03, doc 04 error table).</summary>
+/// <summary>Maps Kite and AI-provider exceptions to ProblemDetails (doc 03, doc 04 error table, doc 06 §Providers).</summary>
 public sealed class KiteExceptionHandler(IProblemDetailsService problems, ILogger<KiteExceptionHandler> logger) : IExceptionHandler
 {
     public const string SessionRequired = "kite-session-required";
     public const string Unavailable = "kite-unavailable";
+    public const string AiUnavailable = "ai-unavailable";
 
     public async ValueTask<bool> TryHandleAsync(HttpContext ctx, Exception exception, CancellationToken ct)
     {
@@ -22,6 +23,11 @@ public sealed class KiteExceptionHandler(IProblemDetailsService problems, ILogge
             {
                 Status = StatusCodes.Status503ServiceUnavailable, Type = Unavailable,
                 Title = "Zerodha is not responding", Detail = "Zerodha is not responding, try again in a minute.",
+            },
+            Ai.AiUnavailableException a => new ProblemDetails
+            {
+                Status = StatusCodes.Status503ServiceUnavailable, Type = AiUnavailable,
+                Title = "The AI assistant is unavailable", Detail = a.Message,
             },
             KiteException k => new ProblemDetails
             {

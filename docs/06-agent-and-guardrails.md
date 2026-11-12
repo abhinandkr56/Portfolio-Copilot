@@ -84,7 +84,7 @@ Case-insensitive regexes over the answer **without** the disclaimer sentence:
 ## Guardrail 2: NumberCheck (`Core`)
 
 1. Extract the numbers from the answer (without the disclaimer) with `-?\d{1,3}(?:,\d{2,3})*(?:\.\d+)?|-?\d+(?:\.\d+)?`. Strip commas, `%`, `₹`, and a leading `+`.
-2. Build the **allowed set** from every number in the tool-result JSON and the review JSON sent this turn. For each one, add its absolute value and roundings to 0, 1 and 2 dp.
+2. Build the **allowed set** from every number in the tool-result JSON and the review JSON sent this turn (Ask also allows the numbers in the user's own question). For each one, add its absolute value and roundings to 0, 1 and 2 dp.
 3. Always allow: integers 0–12 (counts, months), years 2000–2100, and numbers inside dates matching `\d{4}-\d{2}-\d{2}`.
 4. Any extracted number not in the allowed set (compare as decimal) → **fail**, listing the unknown numbers.
 
@@ -98,4 +98,8 @@ Explain returns plain text, not JSON, to keep it simple. (`NativeJsonSchema` is 
 
 ## Providers
 
-`AI:Provider` = `Groq` (default) | `Gemini` | `Ollama`. The API's `/api/session` response and the Web footer show the current provider and model. Provider failures (401, 404 model, 429) become short user-facing errors, never stack traces.
+`AI:Provider` = `Groq` (default) | `Gemini` | `Ollama`. The API's `/api/session` response and the Web footer show the current provider and model. Provider failures (401, 404 model, 429) become short user-facing errors, never stack traces: Explain returns 200 with `ai.error`; Ask returns 503 `ai-unavailable`.
+
+**Gemini 3 tool calls** need their `extra_content.google.thought_signature` sent back on the next turn (otherwise 400). The .NET OpenAI client drops it, so `GeminiThoughtSignatureHandler` (Gemini only) re-attaches it by tool-call id.
+
+**Telemetry:** chat, `invoke_agent`, `execute_tool` and `tool.{Name}` spans with token counts. Message content is **not** recorded unless `AI:TraceContent=true` (Aspire sets `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`, which would otherwise record prompts, answers and tool results).

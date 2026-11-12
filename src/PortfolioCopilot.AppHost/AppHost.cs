@@ -5,6 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var groqKey = builder.AddParameter("groq-key", () => Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? "", secret: true);
 var geminiKey = builder.AddParameter("gemini-key", () => Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? "", secret: true);
 var kiteMode = builder.Configuration["Kite:Mode"] ?? "Mock";
+var aiProvider = builder.Configuration["AI:Provider"]; // e.g. --AI:Provider=Gemini; unset = the Api's appsettings (Groq)
 
 var pg = builder.AddPostgres("pg")
                 .WithImage("pgvector/pgvector", "pg17")
@@ -19,6 +20,9 @@ var api = builder.AddProject<Projects.PortfolioCopilot_Api>("api", launchProfile
     .WithEnvironment("GEMINI_API_KEY", geminiKey)
     .WithEnvironment("Kite__Mode", kiteMode)
     .WithHttpHealthCheck("/health");
+
+if (!string.IsNullOrWhiteSpace(aiProvider))
+    api.WithEnvironment("AI__Provider", aiProvider);
 
 if (kiteMode == "Mock")
     api.WithReference(mockKite).WaitFor(mockKite);

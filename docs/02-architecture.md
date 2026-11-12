@@ -91,7 +91,7 @@ builder.Build().Run();
     "Groq":   { "Endpoint": "https://api.groq.com/openai/v1",
                 "Model": "openai/gpt-oss-120b", "KeyVariable": "GROQ_API_KEY", "NativeJsonSchema": true },
     "Gemini": { "Endpoint": "https://generativelanguage.googleapis.com/v1beta/openai/",
-                "Model": "gemini-3.8-flash", "KeyVariable": "GEMINI_API_KEY", "NativeJsonSchema": true },
+                "Model": "gemini-3.6-flash", "KeyVariable": "GEMINI_API_KEY", "NativeJsonSchema": true },
     "Ollama": { "Endpoint": "http://localhost:11434/v1",
                 "Model": "llama3.2", "KeyVariable": "OLLAMA_API_KEY", "NativeJsonSchema": false }
   },
@@ -114,7 +114,7 @@ builder.Build().Run();
 }
 ```
 
-> **Model ids must be verified** (Groq's and Gemini's model lists) before Phase 5, and recorded in `DECISIONS.md`. The ids above were current in early November 2026 but weren't re-checked for this spec.
+> **Model ids verified 2026-11-12** (see `DECISIONS.md`): Groq `openai/gpt-oss-120b` (Production); Gemini `gemini-3.6-flash` (Stable; `gemini-3.8-flash` was returning 503 "high demand"). The `AI` block also has `"ShareAmounts": false` and `"TraceContent": false`. The AppHost forwards `--AI:Provider=…` to the Api.
 > `MockBaseUrl` uses Aspire service discovery (`http://mockkite`); call `builder.AddServiceDefaults()` and register the `HttpClient` with service discovery.
 
 ## Database (EF Core, `copilotdb`)

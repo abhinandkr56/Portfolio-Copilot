@@ -69,6 +69,7 @@ public sealed class ApiFixture : IAsyncLifetime
     private WebApplicationFactory<Program>? _api;
 
     public MockKiteFactory Mock { get; } = new();
+    public FakeChatClient Llm { get; } = new();
     public RecordingHandler KiteTraffic { get; private set; } = null!;
     public CapturingLoggerProvider Logs { get; } = new();
 
@@ -96,6 +97,10 @@ public sealed class ApiFixture : IAsyncLifetime
                 services.AddDbContext<CopilotDbContext>(o => o.UseSqlite(_db));
 
                 services.AddHttpClient<KiteClient>().ConfigurePrimaryHttpMessageHandler(() => KiteTraffic);
+                // No real LLM in tests: a scripted fake, and settings that say a key is configured.
+                services.AddSingleton<Microsoft.Extensions.AI.IChatClient>(Llm);
+                services.AddSingleton(new PortfolioCopilot.Api.Ai.AiSettings("Groq", "openai/gpt-oss-120b", KeyConfigured: true, ShareAmounts: false, "GROQ_API_KEY"));
+
                 services.AddHttpClient<PortfolioCopilot.Api.Portfolio.MockControl>().ConfigurePrimaryHttpMessageHandler(() => Mock.Server.CreateHandler());
             });
         });
@@ -124,6 +129,7 @@ public sealed class ApiFixture : IAsyncLifetime
         (await MockClient().PostAsync("/__reset", null)).EnsureSuccessStatusCode();
         KiteTraffic.Requests.Clear();
         Logs.Lines.Clear();
+        Llm.Reset();
     }
 
     /// <summary>Walks /kite/login → MockKite /connect/login → /kite/callback with one browser and returns the final redirect.</summary>

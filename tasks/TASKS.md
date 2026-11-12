@@ -95,14 +95,14 @@ Docs: 07
 
 Docs: 06 (everything except guardrail tuning), 02 §config
 
-- [ ] **Verify the model ids** on Groq's and Gemini's current model lists; update `appsettings.json`; record them in `DECISIONS.md`
-- [ ] `ChatClientFactory` (the CLAUDE.md convention) + `.UseOpenTelemetry()`; ServiceDefaults listens to the M.E.AI source and meter
-- [ ] `Redactor` wired in; `AI:ShareAmounts` (default false)
-- [ ] Explain: `POST /api/review {explain:true}`
-- [ ] Ask: the agent with the 6 tools (Agent Framework, or `UseFunctionInvocation`; record which), in-memory conversations, `toolsUsed`
-- [ ] Both guardrails, the retry and the fallbacks from doc 06; disclaimer enforcement; `ReviewRuns` audit
-- [ ] Web: the Explain button and the Ask page (suggested prompts, tools used, ⚠ badge)
-- [ ] Api.Tests with a fake `IChatClient`: pass, invented number → fallback, forbidden phrase → fallback
+- [x] **Verify the model ids** on Groq's and Gemini's current model lists; update `appsettings.json`; record them in `DECISIONS.md`
+- [x] `ChatClientFactory` (the CLAUDE.md convention) + `.UseOpenTelemetry()`; ServiceDefaults listens to the M.E.AI source and meter
+- [x] `Redactor` wired in; `AI:ShareAmounts` (default false)
+- [x] Explain: `POST /api/review {explain:true}`
+- [x] Ask: the agent with the 6 tools (Agent Framework, or `UseFunctionInvocation`; record which), in-memory conversations, `toolsUsed`
+- [x] Both guardrails, the retry and the fallbacks from doc 06; disclaimer enforcement; `ReviewRuns` audit
+- [x] Web: the Explain button and the Ask page (suggested prompts, tools used, ⚠ badge)
+- [x] Api.Tests with a fake `IChatClient`: pass, invented number → fallback, forbidden phrase → fallback
 
 **Done when:** with `GROQ_API_KEY` set, Explain on `demo` produces a summary with `numberCheckPassed: true`; asking "Should I sell INFY?" gets a refusal plus the INFY concentration facts; the chat span and tool spans appear in the Aspire dashboard; `--AI:Provider=Gemini` also works (if a key is set).
 

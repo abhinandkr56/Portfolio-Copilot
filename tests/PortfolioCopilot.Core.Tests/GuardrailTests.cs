@@ -10,11 +10,12 @@ public class RedactorTests
       "funds": [ { "folio": "FOLIOTEST0001", "fund": "Alpha", "percentOfTotal": 22.0, "value": 22000, "pnl": 2000,
                    "averagePrice": 50, "lastPrice": 55, "order_id": "O1" } ],
       "sips": { "items": [ { "sip_id": "S1", "instalmentAmount": 10000 } ], "activeMonthlyEquivalent": 16500, "monthlyBudget": 40000 },
+      "plan": { "monthlySipBudget": 40000, "driftBandPoints": 5 },
       "findings": [ { "message": "The monthly SIP of ₹5,000 in Beta is PAUSED.", "evidence": { "percentOfTotal": 18.0, "value": 18000 } } ]
     }
     """;
 
-    private static readonly string[] AmountFields = ["value", "pnl", "averagePrice", "lastPrice", "instalmentAmount", "activeMonthlyEquivalent", "monthlyBudget"];
+    private static readonly string[] AmountFields = ["value", "pnl", "averagePrice", "lastPrice", "instalmentAmount", "activeMonthlyEquivalent", "monthlyBudget", "monthlySipBudget"];
     private static readonly string[] DroppedFields = ["user_name", "email", "access_token", "order_id", "sip_id"];
 
     private static IEnumerable<string> Keys(JsonNode? node) => node switch
@@ -159,4 +160,15 @@ public class InrTests
     [InlineData(12345678.5, "₹1,23,45,678.50")]
     [InlineData(-600, "-₹600")]
     public void Indian_grouping(decimal amount, string expected) => Assert.Equal(expected, Inr.Format(amount));
+}
+
+public class DisclaimerTests
+{
+    [Theory]
+    [InlineData("Equity is 84.5%.", "Equity is 84.5%.\n\nInformation only, not investment advice. You make the decisions.")]
+    [InlineData("Equity is 84.5%. Information only, not investment advice. You make the decisions.", "Equity is 84.5%.\n\nInformation only, not investment advice. You make the decisions.")]
+    [InlineData("Information only, not investment advice. You make the decisions. Equity is 84.5%.", "Equity is 84.5%.\n\nInformation only, not investment advice. You make the decisions.")]
+    [InlineData("", "Information only, not investment advice. You make the decisions.")]
+    public void Ensure_ends_with_exactly_one_disclaimer(string answer, string expected) =>
+        Assert.Equal(expected, Disclaimer.Ensure(answer));
 }

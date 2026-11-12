@@ -2,7 +2,7 @@ import { AllocationBars } from "@/components/AllocationBars";
 import { ConnectBanner } from "@/components/ConnectBanner";
 import { ConnectToast } from "@/components/ConnectToast";
 import { ErrorPanel, KITE_DOWN_MESSAGE } from "@/components/ErrorPanel";
-import { ExplainButton } from "@/components/ExplainButton";
+import { ExplainPanel } from "@/components/ExplainPanel";
 import { FindingsList } from "@/components/FindingsList";
 import { SummaryCards } from "@/components/SummaryCards";
 import { apiGet, apiSend } from "@/lib/api";
@@ -56,9 +56,9 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
       </section>
 
       <section>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="mb-3 space-y-3">
           <h2 className="font-semibold">Findings</h2>
-          <ExplainButton />
+          <ExplainPanel />
         </div>
         <FindingsList findings={review.findings} initialSeverity={first(sp.severity)} />
       </section>

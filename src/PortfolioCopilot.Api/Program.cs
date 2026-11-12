@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json.Serialization;
 using PortfolioCopilot.Api;
+using PortfolioCopilot.Api.Ai;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -58,6 +59,13 @@ builder.Services.AddSingleton<InstrumentsCache>();
 builder.Services.AddScoped<ReviewClock>();
 builder.Services.AddScoped<PortfolioService>();
 
+// AI (doc 06). One IChatClient for the configured provider; tests swap it for a fake.
+builder.Services.AddSingleton(sp => AiSettings.FromConfig(sp.GetRequiredService<IConfiguration>()));
+builder.Services.AddSingleton(sp => ChatClientFactory.Create(sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<ILoggerFactory>()));
+builder.Services.AddSingleton<Conversations>();
+builder.Services.AddScoped<ExplainService>();
+builder.Services.AddScoped<AskService>();
+
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -85,6 +93,7 @@ app.MapDefaultEndpoints();
 app.MapGet("/api/ping", () => TypedResults.Ok(new PingResponse(true))).WithTags("Health");
 app.MapKiteEndpoints();
 app.MapPortfolioEndpoints();
+app.MapAskEndpoint();
 
 var isDevLike = app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing");
 if (isDevLike)

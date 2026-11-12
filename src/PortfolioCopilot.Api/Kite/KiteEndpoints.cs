@@ -94,12 +94,12 @@ public static class KiteEndpoints
 
     /// <summary>Connected or not (always 200). The user's name comes from the cached profile (5 min), so the e-mail and name are never stored.</summary>
     private static async Task<SessionResponse> GetSession(IOptions<KiteOptions> options, KiteSessionStore sessions,
-        KiteClient kite, IMemoryCache cache, CancellationToken ct)
+        KiteClient kite, IMemoryCache cache, Ai.AiSettings ai, CancellationToken ct)
     {
         var o = options.Value;
         var session = await sessions.GetAsync(ct);
         if (session is null)
-            return new SessionResponse(false, o.Mode);
+            return new SessionResponse(false, o.Mode, AiProvider: ai.Provider, AiModel: ai.Model);
 
         string? userName = null;
         try
@@ -113,14 +113,14 @@ public static class KiteEndpoints
         }
         catch (KiteSessionExpiredException)
         {
-            return new SessionResponse(false, o.Mode); // KiteClient already deleted the session
+            return new SessionResponse(false, o.Mode, AiProvider: ai.Provider, AiModel: ai.Model); // KiteClient already deleted the session
         }
         catch (KiteUnavailableException)
         {
             // still connected as far as we know; the name is just unavailable right now
         }
 
-        return new SessionResponse(true, o.Mode, session.UserIdMasked, userName, session.CreatedUtc, session.ExpiresUtc);
+        return new SessionResponse(true, o.Mode, session.UserIdMasked, userName, session.CreatedUtc, session.ExpiresUtc, ai.Provider, ai.Model);
     }
 
     /// <summary>Kite DELETE /session/token (best effort), then forget the session. 204.</summary>

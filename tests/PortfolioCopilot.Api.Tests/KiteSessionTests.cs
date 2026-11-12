@@ -29,7 +29,7 @@ public class KiteSessionTests(ApiFixture fx) : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var session = await response.Content.ReadFromJsonAsync<SessionResponse>(Web);
-        Assert.Equal(new SessionResponse(false, "Mock"), session);
+        Assert.Equal(new SessionResponse(false, "Mock", AiProvider: "Groq", AiModel: "openai/gpt-oss-120b"), session);
     }
 
     [Fact]

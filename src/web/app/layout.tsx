@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AiFooter } from "@/components/AiFooter";
 import { ConnectionPill, ConnectionPillSkeleton } from "@/components/ConnectionPill";
 import { RefreshButton } from "@/components/RefreshButton";
 import "./globals.css";
@@ -46,7 +47,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
         <footer className="border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-          <p>AI: not set up yet (Phase 5)</p>
+          <Suspense fallback={<p>AI: …</p>}>
+            <AiFooter />
+          </Suspense>
           <p className="mt-1 font-medium">Information only, not investment advice. You make the decisions.</p>
         </footer>
       </body>

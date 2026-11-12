@@ -18,6 +18,13 @@ public static class Extensions
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
 
+    // Both spellings exist in Microsoft.Extensions.AI 10.11.0 and Microsoft.Agents.AI 1.28.0 (checked in the binaries).
+    private static readonly string[] AiTelemetrySources =
+    [
+        "Experimental.Microsoft.Extensions.AI", "Microsoft.Extensions.AI",
+        "Experimental.Microsoft.Agents.AI", "Microsoft.Agents.AI",
+    ];
+
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();
@@ -57,12 +64,14 @@ public static class Extensions
             {
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
+                    .AddRuntimeInstrumentation()
+                    .AddMeter(AiTelemetrySources); // token usage and operation duration
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddSource("PortfolioCopilot") // Kite calls and (later) agent tool calls
+                    .AddSource("PortfolioCopilot") // Kite calls, the agent run and tool.{Name} spans
+                    .AddSource(AiTelemetrySources) // chat spans (gen_ai.*) from Microsoft.Extensions.AI and the Agent Framework
                     .AddAspNetCoreInstrumentation(tracing =>
                     {
                         // Exclude health check requests from tracing

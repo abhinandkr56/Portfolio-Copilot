@@ -55,3 +55,11 @@ public sealed record NavImportRequest(string Path);
 public sealed record NavImportResponse(int Imported, DateOnly? NavDate);
 
 public sealed record ScenarioResponse(string Scenario, DateOnly Today);
+
+/// <summary><c>POST /api/ask</c> (doc 03). Omit <see cref="ConversationId"/> to start a new conversation.</summary>
+public sealed record AskRequest(string? ConversationId, string Message);
+
+/// <param name="Answer">Always ends with the disclaimer.</param>
+/// <param name="ToolsUsed">Tool names in the order they were first called.</param>
+public sealed record AskResponse(
+    string ConversationId, string Answer, IReadOnlyList<string> ToolsUsed, string Provider, string Model, bool NumberCheckPassed);

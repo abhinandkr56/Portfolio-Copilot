@@ -39,6 +39,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AskResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Service Unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session": {
         parameters: {
             query?: never;
@@ -359,6 +425,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plan": {
         parameters: {
             query?: never;
@@ -533,6 +632,18 @@ export interface components {
             totalValue: number;
             classes: components["schemas"]["AllocationClassDto"][];
         };
+        AskRequest: {
+            conversationId: null | string;
+            message: string;
+        };
+        AskResponse: {
+            conversationId: string;
+            answer: string;
+            toolsUsed: string[];
+            provider: string;
+            model: string;
+            numberCheckPassed: boolean;
+        };
         /** @enum {string} */
         AssetClass: "Equity" | "Debt" | "Gold" | "Other" | "Hybrid";
         FailedOrderDto: {
@@ -683,6 +794,8 @@ export interface components {
             createdUtc?: null | string;
             /** Format: date-time */
             expiresUtc?: null | string;
+            aiProvider?: null | string;
+            aiModel?: null | string;
         };
         /** @enum {string} */
         Severity: "Act" | "Watch" | "Info";

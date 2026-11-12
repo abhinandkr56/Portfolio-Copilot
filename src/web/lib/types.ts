@@ -20,3 +20,6 @@ export type Severity = Schemas["Severity"];
 export type SipDto = Schemas["SipDto"];
 export type SipsResponse = Schemas["SipsResponse"];
 export type StockRow = Schemas["StockRow"];
+export type AiInfo = Schemas["AiInfo"];
+export type AskRequest = Schemas["AskRequest"];
+export type AskResponse = Schemas["AskResponse"];

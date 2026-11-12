@@ -12,7 +12,8 @@ public static partial class Redactor
     private static readonly HashSet<string> Dropped = ["email", "username", "accesstoken", "orderid", "sipid"];
 
     private static readonly HashSet<string> Amounts =
-        ["value", "pnl", "averageprice", "lastprice", "instalmentamount", "activemonthlyequivalent", "monthlybudget"];
+        ["value", "pnl", "averageprice", "lastprice", "instalmentamount", "activemonthlyequivalent", "monthlybudget",
+         "monthlysipbudget" /* the plan's budget (GetPlan tool); same amount as monthlyBudget */];
 
     /// <summary>Returns a redacted deep copy; the input is not changed.</summary>
     public static JsonNode? Redact(JsonNode? node, bool shareAmounts)
