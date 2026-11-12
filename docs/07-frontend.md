@@ -3,7 +3,7 @@
 ## Stack
 
 - **Next.js, latest stable 16.x.** Check npm for the newest patch: Next.js publishes regular security releases, so always take the latest patch. App Router, **TypeScript strict**, **Tailwind CSS**, ESLint, npm. Create it with `npx create-next-app@latest web` (TypeScript yes, ESLint yes, Tailwind yes, `src/` directory no, App Router yes, import alias `@/*`).
-- **Node.js:** the version that Next.js 16 requires (Node 20.9 or later); use the current LTS. Record the versions in `DECISIONS.md`.
+- **Node.js:** the test toolchain needs more than Next.js does: Vitest 5 and Vite 8 need Node ≥ 22.12, and jsdom 31 needs ≥ 22.22.2 or ≥ 24.15. Use Node 24 LTS (`src/web/.nvmrc`) or newer. Record the versions in `DECISIONS.md`.
 - **No** UI component library, chart library, state library or data-fetching library. Use React state, URL search params and `router.refresh()`. Charts are hand-written SVG components. `lucide-react` for icons is fine.
 
 ## Talking to the Api
@@ -41,7 +41,7 @@ Browser ──▶ Next.js (127.0.0.1:3000)
   - **401 `kite-session-required`** → render `<ConnectBanner />` instead of the content
   - **503 `kite-unavailable`** → render `<ErrorPanel message="Zerodha is not responding, try again in a minute" />`
   - anything else → rethrow to `error.tsx`
-- **Refresh** calls `router.refresh()`.
+- **Refresh** calls `POST /api/refresh` (drops the Api's cached Kite data) and then `router.refresh()`, so it really refetches from Zerodha.
 - Theme: Tailwind `dark:` variants using the `media` strategy (`prefers-color-scheme`).
 - Severity colours: Act = red, Watch = amber, Info = blue, OK = green. Always pair the colour with a text label.
 - Every number on screen comes from the Api. The frontend **never computes** allocations or findings. It only formats them.
@@ -81,10 +81,10 @@ src/web/
 6. "As of {IST time} · NAV date {date}", plus a stale warning if there's a `StaleNav` finding.
 
 ### `/holdings`
-Two tables, **Stocks** and **Mutual funds**. Columns: Name · Qty · Avg · LTP · Value · P&L (coloured) · % of total · Asset class · (funds) Plan badge (`Direct` green / `Regular` amber / `Unknown` grey). Columns sort client-side when the header is clicked. Totals row. Folios are masked (they come masked from the Api).
+Two tables, **Stocks** and **Mutual funds**. Columns: Name · Qty · Avg · LTP · Value · P&L (coloured) · % of total · Asset class (the Api's `assetClassLabel`, e.g. "Hybrid (65/35)") · (funds) Plan badge (`Direct` green / `Regular` amber / `Unknown` grey). Columns sort client-side when the header is clicked. Totals row from the Api's `stocksTotal` / `fundsTotal`. Folios are masked (they come masked from the Api).
 
 ### `/sips`
-A table of SIPs: Fund · Status chip · Frequency · Amount · Monthly equivalent · Next instalment · Completed. Paused rows are dimmed. Above it, `SipBudgetBar`: "Active SIPs ₹16,500/month of a ₹40,000 budget". Below it, a "Recent failed SIP orders (last 7 days)" list.
+A table of SIPs: Fund · Status chip · Frequency · Amount · Monthly equivalent · Next instalment · Completed. Paused rows are dimmed. Above it, `SipBudgetBar`: "Active SIPs ₹16,500/month of a ₹40,000 budget" (bar length = the Api's `budgetUsedPercent`). Below it, a "Recent failed SIP orders (last 7 days)" list.
 
 ### `/plan`
 `PlanForm` (client), bound to the `Plan` type:

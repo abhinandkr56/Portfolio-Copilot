@@ -78,14 +78,14 @@ Docs: 03, 05
 
 Docs: 07
 
-- [ ] `npm run gen:api` → `lib/api-types.ts` (fix the Api's OpenAPI metadata first if types come out as `unknown`)
-- [ ] `lib/api.ts` (ApiError, ProblemDetails, server vs browser base URL) and `lib/format.ts`
-- [ ] `/connect` route handler; layout, nav, ConnectionPill, RefreshButton, footer
-- [ ] Dashboard (summary cards, SVG `AllocationBars`, `FindingsList` with filters); the Explain button disabled with the tooltip "Available in Phase 5"
-- [ ] Holdings, SIPs and Plan pages (`PlanForm` saves and refreshes)
-- [ ] `loading.tsx` / `error.tsx`; ConnectBanner for 401, ErrorPanel for 503
-- [ ] Dark/light theme; checked at 390 px width
-- [ ] Vitest tests and the Playwright smoke test from doc 07
+- [x] `npm run gen:api` → `lib/api-types.ts` (fix the Api's OpenAPI metadata first if types come out as `unknown`)
+- [x] `lib/api.ts` (ApiError, ProblemDetails, server vs browser base URL) and `lib/format.ts`
+- [x] `/connect` route handler; layout, nav, ConnectionPill, RefreshButton, footer
+- [x] Dashboard (summary cards, SVG `AllocationBars`, `FindingsList` with filters); the Explain button disabled with the tooltip "Available in Phase 5"
+- [x] Holdings, SIPs and Plan pages (`PlanForm` saves and refreshes)
+- [x] `loading.tsx` / `error.tsx`; ConnectBanner for 401, ErrorPanel for 503
+- [x] Dark/light theme; checked at 390 px width
+- [x] Vitest tests and the Playwright smoke test from doc 07
 
 **Done when:** after Connect (mock), the dashboard shows the `demo` findings; editing the plan targets to Equity 85 · Debt 11 · Gold 4 and saving removes all three AllocationDrift findings (drifts -0.5, +0.5, 0.0); `POST /__fail/token` on MockKite then Refresh shows the Connect banner.
 

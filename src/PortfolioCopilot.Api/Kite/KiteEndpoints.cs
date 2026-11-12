@@ -18,7 +18,7 @@ public static class KiteEndpoints
 
         var api = app.MapGroup("/api/session").WithTags("Session");
         api.MapGet("", GetSession);
-        api.MapPost("/logout", Logout);
+        api.MapPost("/logout", Logout).Produces(StatusCodes.Status204NoContent);
     }
 
     /// <summary>302 to Kite's login page with a random state, kept in a short-lived HttpOnly cookie.</summary>
@@ -76,6 +76,7 @@ public static class KiteEndpoints
         {
             var login = await kite.ExchangeTokenAsync(requestToken, ct);
             await sessions.SaveAsync(login.AccessToken, login.UserId, ct);
+            Portfolio.PortfolioService.ClearCache(cache); // a new login always starts from fresh data
             cache.Set(ProfileCacheKey, new KiteProfile(login.UserId, login.UserName), TimeSpan.FromSeconds(o.CacheSeconds));
             logger.LogInformation("Kite session created ({Mode})", o.Mode);
             return Results.Redirect(WebApp(o, "1"));
@@ -140,6 +141,7 @@ public static class KiteEndpoints
         }
         await sessions.DeleteAsync(ct);
         cache.Remove(ProfileCacheKey);
+        Portfolio.PortfolioService.ClearCache(cache);
         return Results.NoContent();
     }
 

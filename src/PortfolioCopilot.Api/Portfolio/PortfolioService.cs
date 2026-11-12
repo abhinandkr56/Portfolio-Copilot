@@ -15,6 +15,7 @@ public sealed record PortfolioSnapshot(PortfolioInput Input, ComputedPortfolio C
 /// </summary>
 public sealed class PortfolioService(
     KiteClient kite,
+    KiteSessionStore sessions,
     PlanStore plans,
     NavStore navs,
     InstrumentsCache instruments,
@@ -49,7 +50,7 @@ public sealed class PortfolioService(
     public IReadOnlyList<Finding> Evaluate(PortfolioSnapshot s) =>
         RulesEngine.Evaluate(s.Input, s.Computed, s.Clock, coreOptions);
 
-    /// <summary>Drops cached Kite data and the mock scenario, so the next request fetches again.</summary>
+    /// <summary>Drops cached Kite data and the mock scenario, so the next request fetches again (the instruments master keeps its 24 h cache).</summary>
     public static void ClearCache(IMemoryCache cache)
     {
         cache.Remove(KiteDataKey);
@@ -58,6 +59,10 @@ public sealed class PortfolioService(
 
     private async Task<KiteData> GetKiteDataAsync(CancellationToken ct)
     {
+        // Cached data is only served while there is a session: after logout or expiry the user must reconnect.
+        if (await sessions.GetAsync(ct) is null)
+            throw new KiteSessionExpiredException();
+
         if (cache.TryGetValue(KiteDataKey, out KiteData? cached) && cached is not null)
             return cached;
 

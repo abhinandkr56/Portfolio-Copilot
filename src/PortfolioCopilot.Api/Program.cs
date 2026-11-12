@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json.Serialization;
+using PortfolioCopilot.Api;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -57,8 +58,12 @@ builder.Services.AddSingleton<InstrumentsCache>();
 builder.Services.AddScoped<ReviewClock>();
 builder.Services.AddScoped<PortfolioService>();
 
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddOpenApi();
+builder.Services.ConfigureHttpJsonOptions(o =>
+{
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict; // numbers are numbers (also in OpenAPI, so TS types are `number`)
+});
+builder.Services.AddOpenApi(o => o.AddPortfolioCopilotFixes());
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<KiteExceptionHandler>();

@@ -69,6 +69,8 @@ public class PortfolioEndpointTests(ApiFixture fx) : IAsyncLifetime
         var review = await JsonAsync(await browser.PostAsJsonAsync("/api/review", new { explain = false }));
 
         Assert.Equal("2026-11-07", review.GetProperty("navDate").GetString());
+        var counts = review.GetProperty("counts");
+        Assert.Equal((2, 6, 0), (counts.GetProperty("act").GetInt32(), counts.GetProperty("watch").GetInt32(), counts.GetProperty("info").GetInt32()));
         var first = review.GetProperty("findings")[0];
         Assert.Equal("Equity is 84.5% against a target of 70.0% (drift +14.5 points, band ±5.0).", first.GetProperty("message").GetString());
         var evidence = first.GetProperty("evidence");
@@ -101,6 +103,12 @@ public class PortfolioEndpointTests(ApiFixture fx) : IAsyncLifetime
         Assert.Equal("Hybrid", delta.GetProperty("assetClass").GetString());
         Assert.Equal("Hybrid (65/35)", delta.GetProperty("assetClassLabel").GetString());
 
+        Assert.Equal(44000m, h.GetProperty("stocksTotal").GetProperty("value").GetDecimal());
+        Assert.Equal(2100m, h.GetProperty("stocksTotal").GetProperty("pnl").GetDecimal());
+        Assert.Equal(44.0m, h.GetProperty("stocksTotal").GetProperty("percentOfTotal").GetDecimal());
+        Assert.Equal(56000m, h.GetProperty("fundsTotal").GetProperty("value").GetDecimal());
+        Assert.Equal(56.0m, h.GetProperty("fundsTotal").GetProperty("percentOfTotal").GetDecimal());
+
         var raw = h.GetRawText();
         Assert.DoesNotContain("FOLIOTEST", raw);
         Assert.DoesNotContain("mock-access-token", raw);
@@ -115,6 +123,7 @@ public class PortfolioEndpointTests(ApiFixture fx) : IAsyncLifetime
 
         Assert.Equal(16500m, s.GetProperty("activeMonthlyEquivalent").GetDecimal());
         Assert.Equal(40000m, s.GetProperty("monthlyBudget").GetDecimal());
+        Assert.Equal(41.3m, s.GetProperty("budgetUsedPercent").GetDecimal()); // 16,500 / 40,000
         Assert.Equal(3, s.GetProperty("sips").GetArrayLength());
         var weekly = s.GetProperty("sips").EnumerateArray().Single(x => x.GetProperty("frequency").GetString() == "weekly");
         Assert.Equal(6500m, weekly.GetProperty("monthlyEquivalent").GetDecimal());
@@ -160,6 +169,43 @@ public class PortfolioEndpointTests(ApiFixture fx) : IAsyncLifetime
 
         Assert.Equal(1, fx.KiteTraffic.Requests.Count(r => r.Path == "/portfolio/holdings"));
         Assert.True(fx.KiteTraffic.Requests.Count(r => r.Path == "/mf/instruments") <= 1); // 24 h cache, possibly already on disk
+    }
+
+    [Fact]
+    public async Task Refresh_drops_the_cache_so_the_next_request_fetches_again()
+    {
+        var browser = await ConnectedAsync();
+        await browser.GetAsync("/api/holdings");
+        fx.KiteTraffic.Requests.Clear();
+
+        Assert.Equal(HttpStatusCode.NoContent, (await browser.PostAsync("/api/refresh", null)).StatusCode);
+        await browser.GetAsync("/api/holdings");
+
+        Assert.Equal(1, fx.KiteTraffic.Requests.Count(r => r.Path == "/portfolio/holdings"));
+    }
+
+    [Fact]
+    public async Task Token_failure_then_refresh_shows_session_required()
+    {
+        var browser = await ConnectedAsync();
+        Assert.Equal(HttpStatusCode.OK, (await browser.GetAsync("/api/holdings")).StatusCode); // cached now
+
+        await fx.MockClient().PostAsync("/__fail/token", null);
+        await browser.PostAsync("/api/refresh", null);
+        var response = await browser.PostAsJsonAsync("/api/review", new { explain = false });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Cached_data_is_not_served_after_logout()
+    {
+        var browser = await ConnectedAsync();
+        Assert.Equal(HttpStatusCode.OK, (await browser.GetAsync("/api/holdings")).StatusCode);
+
+        await browser.PostAsync("/api/session/logout", null);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await browser.GetAsync("/api/holdings")).StatusCode);
     }
 
     [Fact]
@@ -310,5 +356,13 @@ public class PortfolioEndpointTests(ApiFixture fx) : IAsyncLifetime
         foreach (var schema in new[] { "PortfolioReview", "HoldingsResponse", "SipsResponse", "AllocationResponse", "Plan", "SessionResponse", "FindingDto" })
             Assert.True(schemas.TryGetProperty(schema, out _), $"{schema} schema missing");
         Assert.Equal(HttpStatusCode.OK, (await fx.Browser().GetAsync("/swagger/index.html")).StatusCode);
+
+        // Precise types for the generated TypeScript (doc 07): no null inside shared enums, numbers are only numbers,
+        // and evidence values are string | number | boolean.
+        foreach (var e in new[] { "Severity", "AssetClass", "PlanType" })
+            Assert.DoesNotContain(schemas.GetProperty(e).GetProperty("enum").EnumerateArray(), v => v.ValueKind == JsonValueKind.Null);
+        Assert.Equal("number", schemas.GetProperty("AllocationClassDto").GetProperty("properties").GetProperty("value").GetProperty("type").GetString());
+        var evidence = schemas.GetProperty("FindingDto").GetProperty("properties").GetProperty("evidence").GetProperty("additionalProperties");
+        Assert.Equal(["boolean", "number", "string"], evidence.GetProperty("type").EnumerateArray().Select(t => t.GetString()).Order());
     }
 }

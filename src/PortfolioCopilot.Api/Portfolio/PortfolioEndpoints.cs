@@ -21,6 +21,11 @@ public static class PortfolioEndpoints
         data.MapGet("/sips", GetSips).ProducesKiteProblems();
         data.MapGet("/allocation", GetAllocation).ProducesKiteProblems();
         data.MapPost("/review", PostReview).ProducesKiteProblems();
+        data.MapPost("/refresh", (IMemoryCache cache) =>
+        {
+            PortfolioService.ClearCache(cache); // the Web's Refresh button: next request fetches from Kite again
+            return TypedResults.NoContent();
+        });
 
         var plan = app.MapGroup("/api/plan").WithTags("Plan");
         plan.MapGet("", (PlanStore plans, CancellationToken ct) => plans.GetCurrentAsync(ct));

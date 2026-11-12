@@ -12,7 +12,12 @@ public sealed record FundRow(
     DateOnly? LastPriceDate, decimal Value, decimal Pnl, AssetClass AssetClass, string AssetClassLabel,
     PlanType Plan, decimal PercentOfTotal);
 
-public sealed record HoldingsResponse(DateTimeOffset AsOfUtc, decimal TotalValue, IReadOnlyList<StockRow> Stocks, IReadOnlyList<FundRow> Funds);
+/// <summary>The totals row under a holdings table.</summary>
+public sealed record HoldingsTotal(decimal Value, decimal Pnl, decimal PercentOfTotal);
+
+public sealed record HoldingsResponse(
+    DateTimeOffset AsOfUtc, decimal TotalValue, IReadOnlyList<StockRow> Stocks, IReadOnlyList<FundRow> Funds,
+    HoldingsTotal StocksTotal, HoldingsTotal FundsTotal);
 
 public sealed record SipDto(
     string SipId, string Fund, string Isin, string Status, string Frequency, decimal InstalmentAmount,
@@ -20,8 +25,9 @@ public sealed record SipDto(
 
 public sealed record FailedOrderDto(string OrderId, string Fund, DateOnly Date, string Message);
 
+/// <param name="BudgetUsedPercent">Active monthly equivalent as a % of the budget (1 dp); 0 when the budget is 0.</param>
 public sealed record SipsResponse(
-    DateTimeOffset AsOfUtc, decimal ActiveMonthlyEquivalent, decimal MonthlyBudget,
+    DateTimeOffset AsOfUtc, decimal ActiveMonthlyEquivalent, decimal MonthlyBudget, decimal BudgetUsedPercent,
     IReadOnlyList<SipDto> Sips, IReadOnlyList<FailedOrderDto> RecentFailedOrders);
 
 /// <param name="Severity">The AllocationDrift severity for this class, or null when it's within the band.</param>
@@ -38,9 +44,11 @@ public sealed record ReviewRequest(bool Explain = false);
 /// <summary>Set when <c>explain: true</c> (Phase 5). <see cref="Error"/> is a short message when the AI call failed.</summary>
 public sealed record AiInfo(string? Provider, string? Model, bool? NumberCheckPassed, int? Attempts, string? Error);
 
+public sealed record FindingCounts(int Act, int Watch, int Info);
+
 public sealed record PortfolioReview(
     DateTimeOffset AsOfUtc, DateOnly? NavDate, AllocationResponse Allocation, IReadOnlyList<FindingDto> Findings,
-    string? Summary, AiInfo? Ai, string Disclaimer);
+    FindingCounts Counts, string? Summary, AiInfo? Ai, string Disclaimer);
 
 public sealed record NavImportRequest(string Path);
 

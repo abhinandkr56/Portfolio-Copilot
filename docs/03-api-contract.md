@@ -66,6 +66,9 @@ Calls Kite `DELETE /session/token` (best effort), deletes the stored session, re
 ```
 Always return Equity, Debt and Gold in that order, then Other only when it's non-zero. `severity` is `null` when within the band.
 
+### `POST /api/refresh`
+Drops the cached Kite data (not the 24 h instruments master), so the next data request fetches from Kite. 204. The Web's **Refresh** button calls it before `router.refresh()`. Data endpoints also refuse cached data when there's no session (401), and login/logout clear the cache.
+
 ---
 
 ## Plan

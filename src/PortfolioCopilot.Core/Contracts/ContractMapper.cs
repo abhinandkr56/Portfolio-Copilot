@@ -27,7 +27,9 @@ public static class ContractMapper
                 h.PriceDate, Money(h.Value), Money(f.Pnl), h.AssetClass, Label(h.AssetClass, plan),
                 h.PlanType ?? PlanType.Unknown, Pct(h.PercentOfTotal)));
         }
-        return new HoldingsResponse(asOfUtc, Money(p.Total), stockRows, fundRows);
+        return new HoldingsResponse(asOfUtc, Money(p.Total), stockRows, fundRows,
+            Total(p, input.Stocks.Sum(s => s.Pnl), HoldingKind.Stock),
+            Total(p, input.Funds.Sum(f => f.Pnl), HoldingKind.Fund));
     }
 
     public static SipsResponse Sips(PortfolioInput input, ComputedPortfolio p, TimeProvider clock, DateTimeOffset asOfUtc)
@@ -39,7 +41,9 @@ public static class ContractMapper
             .Select(o => new FailedOrderDto(o.OrderId, o.Fund, Ist.ToIstDate(o.OrderTimestamp), o.StatusMessage))
             .ToList();
 
-        return new SipsResponse(asOfUtc, p.ActiveMonthlyEquivalent, input.Plan.MonthlySipBudget, sips, failed);
+        var budget = input.Plan.MonthlySipBudget;
+        var used = budget == 0 ? 0 : Pct(p.ActiveMonthlyEquivalent / budget * 100);
+        return new SipsResponse(asOfUtc, p.ActiveMonthlyEquivalent, budget, used, sips, failed);
     }
 
     public static AllocationResponse Allocation(ComputedPortfolio p, IReadOnlyList<Finding> findings, DateTimeOffset asOfUtc)
@@ -56,11 +60,21 @@ public static class ContractMapper
             p.Holdings.Where(h => h.Kind == HoldingKind.Fund && h.PriceDate is not null).Select(h => h.PriceDate).Max(),
             Allocation(p, findings, asOfUtc),
             findings.Select(Finding).ToList(),
+            new FindingCounts(
+                findings.Count(f => f.Severity == Severity.Act),
+                findings.Count(f => f.Severity == Severity.Watch),
+                findings.Count(f => f.Severity == Severity.Info)),
             Summary: null,
             Ai: null,
             Disclaimer.Text);
 
     public static FindingDto Finding(Finding f) => new(f.Rule, f.Subject, f.Severity, f.Evidence, f.Message, f.Suggestion);
+
+    private static HoldingsTotal Total(ComputedPortfolio p, decimal pnl, HoldingKind kind)
+    {
+        var value = p.Holdings.Where(h => h.Kind == kind).Sum(h => h.Value);
+        return new HoldingsTotal(Money(value), Money(pnl), p.Total == 0 ? 0 : Pct(value / p.Total * 100));
+    }
 
     /// <summary>"Equity", or "Hybrid (65/35)" using the plan's hybrid split.</summary>
     public static string Label(AssetClass assetClass, Plan plan) =>
