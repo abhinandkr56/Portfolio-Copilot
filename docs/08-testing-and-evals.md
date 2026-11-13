@@ -53,6 +53,8 @@ For each scenario:
 
 Print a table (scenario × check: ✓/✗), the provider and model, and a total. **Exit 0 only when everything passes.** Args: `--provider Gemini` (passes through to the API via `/api/dev/provider` if you add it; otherwise restart the AppHost with `--AI:Provider=Gemini`), `--only <scenario>`.
 
+As built (Phase 6): `--provider` only checks that the Api uses that provider (exit 2 if not: restart the AppHost with `--AI:Provider=…`). `RunsAgainst=core` (or `--runs-against core`) runs the deterministic checks through Core with no Api. `--api <url>` overrides the Api address (default: the AppHost's service discovery, else `http://127.0.0.1:5080`). "Mentions" compares case-insensitively and treats dash variants (`–`, `‑`) as `-`. Rate-limited AI calls wait and retry up to 3 times. Two info columns (not pass/fail) show Explain's `attempts` and whether the Ask answer was the model's own (`yes`) or the facts-only `fallback`.
+
 ## 4. Frontend (`src/web`)
 
 Vitest + Testing Library unit tests and one Playwright smoke test, as specified in doc 07 §Tests. Both use the `demo` scenario numbers.

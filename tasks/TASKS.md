@@ -112,9 +112,9 @@ Docs: 06 (everything except guardrail tuning), 02 §config
 
 Docs: 08 §3
 
-- [ ] `PortfolioCopilot.Evals` console as specified; a pass/fail table; exit code
-- [ ] Runs from the AppHost (explicit start), and from the CLI with `RunsAgainst=core` (deterministic part only, no Api)
-- [ ] Tune the prompts (doc 06 only, never the expected files) until every scenario passes on Groq. Record the pass rate per provider in `DECISIONS.md`.
+- [x] `PortfolioCopilot.Evals` console as specified; a pass/fail table; exit code
+- [x] Runs from the AppHost (explicit start), and from the CLI with `RunsAgainst=core` (deterministic part only, no Api)
+- [x] Tune the prompts (doc 06 only, never the expected files) until every scenario passes on Groq. Record the pass rate per provider in `DECISIONS.md`.
 
 **Done when:** the evals pass 100% of the deterministic checks and at least 5 of 6 scenarios on all AI checks on Groq, and the failures (if any) are written up in `DECISIONS.md` with an example.
 
