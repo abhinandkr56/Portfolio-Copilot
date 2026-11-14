@@ -47,6 +47,85 @@ public class AmfiNavParserTests
     }
 }
 
+/// <summary>
+/// The 8-column layout (Plan and Option columns), from a trimmed copy of the live file downloaded 2026-11-14
+/// (<c>samples/amfi/NAVAll.live-2026-11-13.sample.txt</c>: real lines, CRLF endings, whitespace-only blank lines).
+/// </summary>
+public class AmfiNavParserLiveLayoutTests
+{
+    private static readonly string Text = Samples.Read("amfi", "NAVAll.live-2026-11-13.sample.txt");
+    private static readonly IReadOnlyList<NavRecord> Live = AmfiNavParser.Parse(Text);
+
+    [Fact]
+    public void The_sample_keeps_the_live_files_crlf_line_endings() => Assert.Contains("\r\n", Text);
+
+    [Fact]
+    public void Live_sample_parses_to_eleven_records() => Assert.Equal(11, Live.Count);
+
+    [Fact]
+    public void Plan_and_option_are_joined_back_into_the_scheme_name() =>
+        Assert.Equal(new NavRecord("INF846K01WO1", "135762", "Axis Children's Fund - Direct Plan - Growth Option",
+                "Children\u2019s Fund - Childrens' Fund", 31.0814m, new DateOnly(2026, 11, 13)),
+            Live.Single(r => r.Isin == "INF846K01WO1"));
+
+    [Fact]
+    public void Empty_plan_and_option_leave_the_name_alone() =>
+        Assert.Equal("Kotak Corporate Bond Fund", Live.Single(r => r.Isin == "INF178L01BU8").SchemeName);
+
+    [Fact]
+    public void Second_isin_alone_and_padded_is_still_read()
+    {
+        var r = Live.Single(r => r.Isin == "INF178L01BT0");
+
+        Assert.Equal(("133786", 1202.9939m, new DateOnly(2016, 10, 21)), (r.SchemeCode, r.Nav, r.NavDate));
+    }
+
+    [Fact]
+    public void Both_isins_on_one_line_produce_records() =>
+        Assert.Equal(["INF2JJD01110", "INF2JJD01128"], Live.Where(r => r.SchemeCode == "154045").Select(r => r.Isin).Order());
+
+    [Fact]
+    public void Category_with_nested_parentheses_is_read_whole() =>
+        Assert.Equal("Exchange Traded Funds (ETFs) - Gold ETF", Live.Single(r => r.Isin == "INF579M01BB5").Category);
+
+    [Fact]
+    public void Live_categories_classify()
+    {
+        AssetClass? Of(string isin) { var r = Live.Single(x => x.Isin == isin); return Classifier.ClassifyAmfiCategory(r.Category, r.SchemeName); }
+
+        Assert.Equal(AssetClass.Equity, Of("INF2JJD01136"));
+        Assert.Equal(AssetClass.Gold, Of("INF579M01BB5"));
+        Assert.Equal(AssetClass.Debt, Of("INF846K01ZN6"));
+    }
+
+    [Fact]
+    public void A_repeated_isin_keeps_the_latest_nav_date()
+    {
+        Assert.Equal(2, Live.Count(r => r.Isin == "INF204KA1US6"));
+
+        var latest = AmfiNavParser.LatestPerIsin(Live);
+
+        Assert.Equal(10, latest.Count);
+        Assert.Equal(("131539", new DateOnly(2017, 10, 23)), latest.Where(r => r.Isin == "INF204KA1US6").Select(r => (r.SchemeCode, r.NavDate)).Single());
+    }
+
+    [Fact]
+    public void A_header_with_an_unknown_ninth_column_throws()
+    {
+        var header = "Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Plan;Option;Net Asset Value;Date;AUM";
+
+        Assert.Throws<AmfiFormatException>(() => AmfiNavParser.Parse(header + "\n"));
+    }
+
+    [Fact]
+    public void A_header_with_reordered_columns_throws()
+    {
+        var header = "Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Option;Plan;Net Asset Value;Date";
+
+        Assert.Throws<AmfiFormatException>(() => AmfiNavParser.Parse(header + "\n"));
+    }
+}
+
 public class MfInstrumentsCsvParserTests
 {
     [Fact]

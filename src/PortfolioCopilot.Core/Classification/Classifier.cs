@@ -34,13 +34,14 @@ public static partial class Classifier
     }
 
     /// <summary>
-    /// AMFI category fallback: "Equity Scheme" → Equity, "Debt Scheme" → Debt, "Hybrid Scheme" → Hybrid,
+    /// AMFI category fallback: "Equity Scheme" → Equity, "Debt Scheme" or "Income/Debt Oriented Scheme" → Debt, "Hybrid Scheme" → Hybrid,
     /// "Gold" in the category, or "FoF" in the category with "gold" in the scheme name → Gold.
     /// </summary>
     public static AssetClass? ClassifyAmfiCategory(string category, string schemeName)
     {
         if (Contains(category, "Equity Scheme")) return AssetClass.Equity;
         if (Contains(category, "Debt Scheme")) return AssetClass.Debt;
+        if (Contains(category, "Income/Debt Oriented Scheme")) return AssetClass.Debt; // the live file's name for debt categories
         if (Contains(category, "Hybrid Scheme")) return AssetClass.Hybrid;
         if (Contains(category, "Gold")) return AssetClass.Gold;
         if (Contains(category, "FoF") && Contains(schemeName, "gold")) return AssetClass.Gold;

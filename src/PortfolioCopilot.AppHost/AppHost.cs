@@ -37,8 +37,9 @@ builder.AddNextJsApp("web", "../web")
     .WithExternalHttpEndpoints();
 #pragma warning restore ASPIREJAVASCRIPT001
 
+// Explicit start from the dashboard. Waits for the api, whose startup applies the migrations that create NavRecords.
 builder.AddProject<Projects.PortfolioCopilot_NavSync>("navsync")
-    .WithReference(db).WaitFor(db).WithExplicitStart();
+    .WithReference(db).WaitFor(db).WaitFor(api).WithExplicitStart();
 
 builder.AddProject<Projects.PortfolioCopilot_Evals>("evals")
     .WithReference(api).WithReference(mockKite).WaitFor(api).WithExplicitStart();

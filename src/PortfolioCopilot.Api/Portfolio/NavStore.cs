@@ -10,10 +10,7 @@ public sealed class NavStore(CopilotDbContext db)
 {
     public async Task<NavImportResponse> ImportAsync(string amfiText, CancellationToken ct = default)
     {
-        var records = AmfiNavParser.Parse(amfiText)
-            .GroupBy(r => r.Isin, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.MaxBy(r => r.NavDate)!)
-            .ToList();
+        var records = AmfiNavParser.LatestPerIsin(AmfiNavParser.Parse(amfiText));
 
         var existing = await db.NavRecords.ToDictionaryAsync(n => n.Isin, StringComparer.OrdinalIgnoreCase, ct);
         foreach (var r in records)

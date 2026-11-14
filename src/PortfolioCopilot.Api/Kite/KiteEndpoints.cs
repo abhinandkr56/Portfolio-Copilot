@@ -127,22 +127,27 @@ public static class KiteEndpoints
     private static async Task<IResult> Logout(KiteSessionStore sessions, KiteClient kite, IMemoryCache cache,
         ILogger<KiteClient> logger, CancellationToken ct)
     {
-        var token = await sessions.GetAccessTokenAsync(ct);
-        if (token is not null)
-        {
-            try
-            {
-                await kite.LogoutAsync(token, ct);
-            }
-            catch (Exception ex) when (ex is KiteException or KiteUnavailableException)
-            {
-                logger.LogWarning("Kite logout failed ({Type}); deleting the local session anyway", ex.GetType().Name);
-            }
-        }
+        await InvalidateKiteTokenAsync(sessions, kite, logger, ct);
         await sessions.DeleteAsync(ct);
         cache.Remove(ProfileCacheKey);
         Portfolio.PortfolioService.ClearCache(cache);
         return Results.NoContent();
+    }
+
+    /// <summary>Kite DELETE /session/token for the stored token, best effort. Doesn't touch the local session.</summary>
+    internal static async Task InvalidateKiteTokenAsync(KiteSessionStore sessions, KiteClient kite, ILogger logger, CancellationToken ct)
+    {
+        var token = await sessions.GetAccessTokenAsync(ct);
+        if (token is null)
+            return;
+        try
+        {
+            await kite.LogoutAsync(token, ct);
+        }
+        catch (Exception ex) when (ex is KiteException or KiteUnavailableException)
+        {
+            logger.LogWarning("Kite logout failed ({Type}); deleting the local session anyway", ex.GetType().Name);
+        }
     }
 
     private static string WebApp(KiteOptions o, string connected, string? reason = null) =>

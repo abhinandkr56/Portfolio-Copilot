@@ -59,6 +59,11 @@ public class ClassifierTests
     [InlineData("Hybrid Scheme - Balanced Advantage", "X Fund", AssetClass.Hybrid)]
     [InlineData("Other Scheme - Gold ETF", "X Gold ETF", AssetClass.Gold)]
     [InlineData("Other Scheme - FoF Domestic", "X Gold Savings Fund", AssetClass.Gold)]
+    // Category names in the live 2026 file
+    [InlineData("Equity Schemes - Flexi Cap Fund", "X Fund", AssetClass.Equity)]
+    [InlineData("Income/Debt Oriented Schemes - Corporate Bond Fund", "X Fund", AssetClass.Debt)]
+    [InlineData("Hybrid Schemes - Arbitrage Fund", "X Fund", AssetClass.Hybrid)]
+    [InlineData("Exchange Traded Funds (ETFs) - Gold ETF", "X Gold ETF", AssetClass.Gold)]
     public void Amfi_category_fallback(string category, string schemeName, AssetClass expected)
     {
         var navs = new Dictionary<string, NavRecord> { ["INFX00000001"] = new("INFX00000001", "1", schemeName, category, 10, new DateOnly(2026, 11, 7)) };

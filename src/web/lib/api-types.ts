@@ -564,6 +564,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dev/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PurgeResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dev/scenario/{name}": {
         parameters: {
             query?: never;
@@ -775,6 +810,19 @@ export interface components {
             status?: null | number;
             detail?: null | string;
             instance?: null | string;
+        };
+        PurgeResponse: {
+            /** Format: int32 */
+            kiteSessions: number;
+            /** Format: int32 */
+            plans: number;
+            /** Format: int32 */
+            navRecords: number;
+            /** Format: int32 */
+            snapshots: number;
+            /** Format: int32 */
+            reviewRuns: number;
+            reseeded: boolean;
         };
         ReviewRequest: {
             /** @default false */

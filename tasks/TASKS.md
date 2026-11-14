@@ -122,10 +122,10 @@ Docs: 08 §3
 
 ## Phase 7: NAV sync and polish
 
-- [ ] NavSync: download the current AMFI NAV file over HTTP, parse it, upsert into `NavRecords`; log the counts. **First check the live file's layout**; if it differs from the classic format, extend the parser, add a test with a trimmed real sample, and record it.
-- [ ] `StaleNav` visible on the dashboard when it applies
-- [ ] README at the repo root: setup, env vars, run, daily login, troubleshooting
-- [ ] `DELETE /api/dev/purge`
+- [x] NavSync: download the current AMFI NAV file over HTTP, parse it, upsert into `NavRecords`; log the counts. **First check the live file's layout**; if it differs from the classic format, extend the parser, add a test with a trimmed real sample, and record it.
+- [x] `StaleNav` visible on the dashboard when it applies
+- [x] README at the repo root: setup, env vars, run, daily login, troubleshooting
+- [x] `DELETE /api/dev/purge`
 
 **Done when:** running NavSync from the dashboard imports thousands of NAV rows, and the tests are still green.
 

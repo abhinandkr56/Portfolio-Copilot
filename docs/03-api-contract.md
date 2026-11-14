@@ -126,7 +126,13 @@ Conversation history is kept in memory per `conversationId` (last 20 messages, 2
 ## Maintenance (Development only)
 
 ### `POST /api/nav/import`
-Body: `{ "path": "samples/amfi/NAVAll.sample.txt" }`. Imports a NAV file from disk (used by tests and mock mode). Returns `{ "imported": 12, "navDate": "2026-11-07" }`.
+Body: `{ "path": "samples/amfi/NAVAll.sample.txt" }`. Imports a NAV file from disk (used by tests and mock mode; either AMFI layout). For the live file use NavSync. Returns `{ "imported": 12, "navDate": "2026-11-07" }`.
+
+### `DELETE /api/dev/purge`
+Invalidates the Kite token at Kite (best effort, like logout), then deletes every row of `KiteSessions`, `Plans`, `NavRecords`, `Snapshots` and `ReviewRuns` in one transaction, clears the in-memory caches (holdings, profile, Ask conversations) and runs the first-run seed again (the sample plan; in Mock mode the sample NAVs). Data Protection keys are kept. Returns the deleted counts:
+```json
+{ "kiteSessions": 1, "plans": 3, "navRecords": 18250, "snapshots": 4, "reviewRuns": 12, "reseeded": true }
+```
 
 ### Mock-only: `POST /api/dev/scenario/{name}`
 Only when `Kite:Mode=Mock`. Forwards to MockKite `POST /__scenario/{name}` and loads the scenario's plan into `Plans`, so the Evals can switch portfolios. Clears the holdings cache. Returns `{ "scenario": "demo", "today": "2026-11-10" }`; 404 for an unknown name.

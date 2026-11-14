@@ -1,0 +1,38 @@
+Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Plan;Option;Net Asset Value;Date
+ 
+Open Ended Schemes(Children’s Fund - Childrens' Fund)
+ 
+Axis Mutual Fund
+ 
+135762;INF846K01WO1;-;Axis Children's Fund;Direct Plan;Growth Option;31.0814;13-Nov-2026
+135765;INF846K01WP8;-;Axis Children's Fund;Direct Plan;IDCW Option;28.6316;13-Nov-2026
+ 
+Open Ended Schemes(Equity Scheme - Flexi Cap Fund)
+ 
+Abakkus Mutual Fund
+ 
+154043;INF2JJD01136;-;Abakkus Flexi Cap Fund;Direct Plan;Growth;11.3900;13-Nov-2026
+154045;INF2JJD01128;INF2JJD01110;Abakkus Flexi Cap Fund;Direct Plan;IDCW;11.3950;13-Nov-2026
+ 
+Open Ended Schemes(Exchange Traded Funds (ETFs) - Gold ETF)
+ 
+360 ONE Mutual Fund
+ 
+153357;INF579M01BB5;-;360 ONE Gold ETF;Direct Plan;GROWTH Option;132.1289;13-Nov-2026
+ 
+Open Ended Schemes(Income/Debt Oriented Schemes - Corporate Bond Fund)
+ 
+Axis Mutual Fund
+ 
+141586;INF846K01ZN6;-;AXIS Corporate Bond Fund;Direct Plan;Daily IDCW Option;10.2212;13-Nov-2026
+133776;INF178L01BU8;-;Kotak Corporate Bond Fund;;;1052.7994;21-Oct-2016
+133786;-;INF178L01BT0 ;Kotak Corporate Bond Fund;;;1202.9939;21-Oct-2016
+ 
+Close Ended Schemes(Income)
+ 
+Aditya Birla Sun Life Mutual Fund
+ 
+Nippon India Mutual Fund
+ 
+131346;INF204KA1US6;-;Reliance Fixed Horizon Fund XXVII- Series 7;;;12.9309;28-Sep-2017
+131539;INF204KA1US6;-;Reliance Fixed Horizon Fund XXVII- Series 8;;;12.8840;23-Oct-2017

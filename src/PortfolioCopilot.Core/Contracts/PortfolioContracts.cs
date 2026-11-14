@@ -56,6 +56,9 @@ public sealed record NavImportResponse(int Imported, DateOnly? NavDate);
 
 public sealed record ScenarioResponse(string Scenario, DateOnly Today);
 
+/// <summary><c>DELETE /api/dev/purge</c> (Development only): rows deleted per table, then the first-run seed runs again.</summary>
+public sealed record PurgeResponse(int KiteSessions, int Plans, int NavRecords, int Snapshots, int ReviewRuns, bool Reseeded);
+
 /// <summary><c>POST /api/ask</c> (doc 03). Omit <see cref="ConversationId"/> to start a new conversation.</summary>
 public sealed record AskRequest(string? ConversationId, string Message);
 

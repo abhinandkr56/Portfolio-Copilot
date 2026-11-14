@@ -1,12 +1,13 @@
 # Sample data (fictional)
 
-Every ISIN here is fake (`INFTEST…` for funds and ETFs, `INETEST…` for stocks). The stock symbols are real tickers, used only as labels, and every price is made up. Every scenario totals ₹1,00,000, so percentages are easy to check by hand.
+Every ISIN here is fake (except in `amfi/NAVAll.live-*.sample.txt`, which is cut from AMFI's public NAV file) (`INFTEST…` for funds and ETFs, `INETEST…` for stocks). The stock symbols are real tickers, used only as labels, and every price is made up. Every scenario totals ₹1,00,000, so percentages are easy to check by hand.
 
 | File | Used by |
 |---|---|
 | `plan.sample.json` | seeds the `Plans` table on first run (same as the `demo` plan) |
 | `kite/mf-instruments.csv` | MockKite `/mf/instruments` (gzipped on the fly) and Core tests |
 | `amfi/NAVAll.sample.txt` | the AMFI parser tests and the mock-mode NAV import. **Classic layout.** It should parse to 9 records (7 growth ISINs + 2 IDCW ISINs on one line); the `N.A.` line is skipped |
+| `amfi/NAVAll.live-2026-11-13.sample.txt` | the parser tests for the **8-column live layout**: real lines cut from the AMFI file downloaded 2026-11-14 (real ISINs and NAVs, byte-for-byte: CRLF endings, whitespace-only blank lines). 11 records, 10 distinct ISINs (one listed twice). `.gitattributes` keeps git from changing its line endings |
 | `scenarios/*.json` | MockKite scenarios, golden tests, evals |
 
 ## Scenarios (today = 2026-11-10 in every scenario)

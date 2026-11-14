@@ -54,7 +54,7 @@ Contract DTOs for the API (`Contracts/`) mirror doc 03 exactly.
 1. `Plan.AssetClassOverrides[symbol or isin]`
 2. Stocks → `Equity`
 3. Funds → `Instruments[isin].SchemeType` through `Classification:SchemeTypeMap` (case-insensitive)
-4. Funds → the AMFI `Category` text: contains `Equity Scheme` → Equity; `Debt Scheme` → Debt; `Hybrid Scheme` → Hybrid; `Gold` or `FoF` with "gold" in the scheme name → Gold
+4. Funds → the AMFI `Category` text: contains `Equity Scheme` → Equity; `Debt Scheme` or `Income/Debt Oriented Scheme` → Debt; `Hybrid Scheme` → Hybrid; `Gold` or `FoF` with "gold" in the scheme name → Gold
 5. Otherwise `Other` (with a warning logged once per ISIN)
 
 `Hybrid` is never shown. Split its value into Equity (`HybridEquityPercent`) and Debt (the rest) **before** computing the allocation. The holdings table shows "Hybrid (65/35)".
@@ -110,7 +110,9 @@ All messages use `CultureInfo.InvariantCulture` and the ₹ symbol for amounts (
 
 ## AMFI NAV parser
 
-The **classic** layout (sample in `samples/amfi/NAVAll.sample.txt`):
+Two layouts are recognised **by their exact header** (column names, case-insensitive). Anything else throws.
+
+**Classic** (6 columns; sample in `samples/amfi/NAVAll.sample.txt`):
 
 ```
 Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Net Asset Value;Date
@@ -122,8 +124,23 @@ Alpha Mutual Fund
 900001;INFTEST00001;-;Alpha Flexi Cap Fund - Direct Plan - Growth;56.1234;07-Nov-2026
 ```
 
-- A line starting with `Scheme Code` is the header; detect the delimiter from it (`;` or `|`).
-- A line containing `Schemes(` sets the current **Category** (the text inside the parentheses).
+**Live since 2026** (8 columns: `Plan` and `Option` split out of the name; checked 2026-11-14 at `https://portal.amfiindia.com/spages/NAVAll.txt`; trimmed real sample in `samples/amfi/NAVAll.live-2026-11-13.sample.txt`):
+
+```
+Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Plan;Option;Net Asset Value;Date
+
+Open Ended Schemes(Children’s Fund - Childrens' Fund)
+
+Axis Mutual Fund
+
+135762;INF846K01WO1;-;Axis Children's Fund;Direct Plan;Growth Option;31.0814;13-Nov-2026
+133776;INF178L01BU8;-;Kotak Corporate Bond Fund;;;1052.7994;21-Oct-2016
+```
+
+- A line starting with `Scheme Code` is the header; detect the delimiter from it (`;` or `|`), then match the columns against the two layouts.
+- A line containing `Schemes(` sets the current **Category**: the text between `Schemes(` and the **last** `)` (the live file has `(Exchange Traded Funds (ETFs) - Gold ETF)`).
 - A non-empty line without the delimiter is the current **AMC** (unused for now).
-- Data line: 6 fields. ISIN 1 and ISIN 2 each produce a record when they look like ISINs (12 chars, start with `IN`). NAV `N.A.` → skip. Date format `dd-MMM-yyyy`, invariant culture.
-- **AMFI has announced a new download format.** If the header isn't recognised, throw a clear `AmfiFormatException("Unrecognised AMFI header: …")`. Don't guess. Phase 7 checks the current live format and adapts the parser.
+- Data line: as many fields as the header. ISIN 1 and ISIN 2 (trimmed) each produce a record when they look like ISINs (12 chars, start with `IN`). NAV that isn't a number (`N.A.`) → skip. Date format `dd-MMM-yyyy`, invariant culture.
+- 8-column layout: `SchemeName` = `Name - Plan - Option`, leaving out empty parts, so names read as in the classic file (and the "Direct"/"Regular" fallback still works).
+- The live file uses CRLF line endings and whitespace-only blank lines; lists a few ISINs twice (`LatestPerIsin` keeps the latest NAV date); and has NAV dates a day or two **ahead** for liquid/overnight funds, which publish weekend NAVs early.
+- **Unrecognised header** → `AmfiFormatException("Unrecognised AMFI header: …")`. Don't guess; add the new layout with a trimmed real sample and a test.

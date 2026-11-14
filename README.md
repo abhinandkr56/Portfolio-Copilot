@@ -1,76 +1,119 @@
-# Portfolio Copilot: build spec for Claude Code
+# Portfolio Copilot
 
-This folder is a **build specification**. Drop it into an empty folder, open it in VS Code, and let the Claude Code extension build the app phase by phase.
+A personal, **read-only** web app. It reads your Zerodha stocks, mutual funds and SIPs through Kite Connect, checks them against your own written plan (allocation targets, concentration caps, Direct vs Regular, SIP health) and explains what it found in plain English with an LLM.
 
-## What gets built
+- It **never places, changes or cancels** orders, GTTs, SIPs or alerts. Kite calls are `GET` only, plus login and logout.
+- Every number is computed in C#. The LLM only explains those numbers and never says what to buy or sell.
+- Personal use only. *Information only, not investment advice. You make the decisions.*
 
-A personal web app (Next.js frontend + ASP.NET Core backend, run together by .NET Aspire) that:
+Next.js frontend (`src/web`), ASP.NET Core API (`src/PortfolioCopilot.Api`) and PostgreSQL, run together by .NET Aspire.
 
-- logs in to your Zerodha account through Kite Connect (read-only),
-- shows your stocks, mutual funds and SIPs, classified into equity / debt / gold,
-- checks them against **your own plan** (`plan.json`): allocation drift, concentration, Regular vs Direct plans, SIP health,
-- explains the findings, and answers questions, with an LLM that is **not allowed to compute or recommend trades**.
+---
 
-It never places orders.
+## 1. Setup
 
-## Folder contents
+You need:
 
-```
-CLAUDE.md                     ← instructions Claude Code reads automatically
-README.md                     ← this file (for you)
-docs/
-  01-product-spec.md          ← scope, user stories, out of scope
-  02-architecture.md          ← projects, config, AppHost wiring
-  03-api-contract.md          ← every endpoint with JSON shapes
-  04-kite-integration.md      ← login flow, Kite endpoints, mock server
-  05-domain-and-rules.md      ← records, classification, rule formulas
-  06-agent-and-guardrails.md  ← providers, tools, guardrails, prompts
-  07-frontend.md              ← pages, components, states
-  08-testing-and-evals.md     ← unit tests, golden scenarios, evals
-  09-security-and-compliance.md
-  DECISIONS.md                ← Claude Code records its decisions here
-tasks/
-  TASKS.md                    ← 9 phases with "done when" checks
-  PROMPTS.md                  ← copy-paste prompts, one per phase
-samples/
-  plan.sample.json
-  kite/                       ← mock Kite responses (fictional data)
-  amfi/NAVAll.sample.txt      ← sample AMFI NAV file (classic layout)
-  scenarios/                  ← golden portfolios + expected findings
+| Tool | Version | Notes |
+|---|---|---|
+| .NET SDK | 10 | `dotnet --version` |
+| Node.js | 24 LTS (≥ 22.12) | `src/web/.nvmrc` says 24. Older Node 22 releases fail with `ERR_REQUIRE_ESM` |
+| Docker Desktop (or Podman) | any recent | Aspire runs Postgres in a container. It must be **running** |
+| Aspire CLI | optional | `dotnet tool install -g Aspire.Cli`, for `aspire start`, `aspire resource …` |
+
+```bash
+git clone <this repo> && cd portfolio-copilot
+cd src/web && npm install && cd ../..      # once; Aspire's web-installer also runs it
+dotnet build PortfolioCopilot.sln
 ```
 
-## How to use it
+## 2. Environment variables
 
-1. **Prerequisites:** .NET 10 SDK, **Node.js LTS** (Next.js 16 needs 20.9 or later), Docker Desktop (or Podman) for Postgres, VS Code with the Claude Code extension, and a Groq API key (free). The Aspire CLI is optional.
-2. Create an empty folder, e.g. `PortfolioCopilot/`, and copy the contents of this folder into it. `CLAUDE.md` must sit at the root.
-3. Set environment variables in your shell (or the user environment on Windows), then restart VS Code so it picks them up:
-   - `GROQ_API_KEY` (needed from Phase 5)
-   - `GEMINI_API_KEY` (optional, second provider)
-   - `KITE_API_KEY`, `KITE_API_SECRET` (only for Phase 8, live mode)
-4. Open the folder in VS Code and start Claude Code.
-5. Paste the prompts from `tasks/PROMPTS.md` **one phase at a time**. After each phase:
-   - run `dotnet run --project src/PortfolioCopilot.AppHost`, open http://127.0.0.1:3000 and look at what changed,
-   - read `docs/DECISIONS.md`,
-   - commit (`git init` at the start; one commit per phase makes it easy to roll back).
-6. **Phase 8 (going live)** needs you: create a **Personal** (free) app in the Kite developer console with the redirect URL `http://127.0.0.1:5080/kite/callback`, then follow the checklist in `TASKS.md`.
+Secrets come only from environment variables (or Aspire user-secret parameters). They never go in `appsettings*.json`.
 
-## Phases at a glance
+| Variable | Needed for | |
+|---|---|---|
+| `GROQ_API_KEY` | AI explain and Ask (default provider) | free at console.groq.com |
+| `GEMINI_API_KEY` | optional second provider (`--AI:Provider=Gemini`) | aistudio.google.com |
+| `KITE_API_KEY`, `KITE_API_SECRET` | **Live** mode only | from your Kite Connect **Personal** app |
 
-| # | Phase | Needs keys? | You'll see |
-|---|---|---|---|
-| 0 | Scaffold | no | AppHost dashboard with empty Api + Web |
-| 1 | Core domain + rules | no | green unit tests, golden scenarios pass in Core |
-| 2 | Mock Kite + Kite client + login | no | "Connected (mock)" in the API |
-| 3 | API endpoints (no AI) | no | `/api/holdings`, `/api/review` in Swagger |
-| 4 | Frontend (no AI) | no | dashboard, holdings, SIPs, plan editor |
-| 5 | AI: explain + ask | Groq | AI summary and the Ask page |
-| 6 | Guardrails + evals | Groq | evals console, all scenarios pass |
-| 7 | NAV sync + polish | no | fresh NAVs, stale-data warnings |
-| 8 | Live Kite | Kite | your real portfolio |
+Without an LLM key everything except the AI summary and Ask still works. Without Kite keys, use Mock mode (the default).
 
-## Before you go live, check these
+Set them in your shell profile (`~/.zshrc`) or user environment, then **restart VS Code and the terminal** so Aspire inherits them.
 
-- The Kite **Personal** plan is free and has no market data. Confirm that `/portfolio/holdings`, `/mf/holdings`, `/mf/sips`, `/mf/orders` and `/mf/instruments` all work on it.
-- The Kite access token expires **every day around 06:00 IST**. Log in once a day with the **Connect Zerodha** button.
-- The sample data is **fictional**. ISINs like `INFTEST00001` don't exist.
-- **Personal use only.** In India, stock recommendations to others require SEBI registration. This app is built to *explain your own plan*, not to give advice.
+## 3. Run
+
+```bash
+dotnet run --project src/PortfolioCopilot.AppHost                          # mock Kite, Groq
+dotnet run --project src/PortfolioCopilot.AppHost -- --Kite:Mode=Live      # your real Zerodha account
+dotnet run --project src/PortfolioCopilot.AppHost -- --AI:Provider=Gemini  # other LLM
+```
+
+| What | Where |
+|---|---|
+| App | http://127.0.0.1:3000 |
+| API + Swagger (Development) | http://127.0.0.1:5080/swagger |
+| Aspire dashboard | the URL printed at startup (logs, traces, resources) |
+
+**Mock mode** serves fictional portfolios from `samples/` (the ISINs like `INFTEST00001` don't exist). Click **Connect Zerodha** and the mock logs you in at once. Switch portfolios with `POST /api/dev/scenario/{name}` (see `samples/README.md`).
+
+### Fresh mutual fund NAVs (NavSync)
+
+In the Aspire dashboard, find the **navsync** resource and press **Start** (or run `aspire resource navsync start`). It downloads the current AMFI file (`https://portal.amfiindia.com/spages/NAVAll.txt`), upserts the latest NAV per ISIN into `NavRecords` and exits. Its log shows the counts:
+
+```
+Parsed 18,255 NAV records for 18,250 ISINs; NAV date 2026-11-13 for 12,108 of them, latest 2026-11-15
+NavRecords upserted in 4.9s: 18,250 inserted, 0 updated, 0 unchanged
+```
+
+Run it once a day, after about 23:00 IST when AMFI has published the day's NAVs. If any fund's price is more than `Classification:NavStaleDays` (4) days old, the dashboard header warns you (the **StaleNav** finding).
+
+### Checks
+
+```bash
+dotnet build PortfolioCopilot.sln && dotnet test PortfolioCopilot.sln
+cd src/web && npm run lint && npm run typecheck && npm test && npm run build
+npm run e2e                                    # Playwright smoke; the AppHost must be running in mock mode
+dotnet run --project tests/PortfolioCopilot.Evals   # golden scenarios + AI checks; needs the AppHost and an LLM key
+```
+
+## 4. Daily login (Live mode)
+
+Kite access tokens **expire every day around 06:00 IST**, and Kite has no refresh token. Each morning:
+
+1. Open http://127.0.0.1:3000. The banner says *Connect your Zerodha account*.
+2. Click **Connect Zerodha** and log in on Zerodha's page (with 2FA).
+3. Zerodha sends you back to the dashboard with a *Connected* toast.
+
+Only the API holds the token, encrypted with ASP.NET Data Protection, and it's never logged. To log out before it expires, call `POST http://127.0.0.1:5080/api/session/logout`, which also invalidates the token at Kite. The UI has no logout button yet.
+
+One-time Kite setup: in the Kite developer console, create a **Personal** app with the redirect URL **`http://127.0.0.1:5080/kite/callback`**.
+
+## 5. Wiping your data
+
+`DELETE http://127.0.0.1:5080/api/dev/purge` (Development only) logs out of Kite and deletes the session, all plans, NAVs, snapshots and the review/ask audit. It also clears the in-memory caches and Ask conversations. Then it re-seeds the sample plan (and the sample NAVs in Mock mode) so the app keeps working. Run NavSync again afterwards for real NAVs.
+
+To remove everything including the database volume, stop the AppHost and delete the `pg` data volume in Docker.
+
+## 6. Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| AppHost hangs at "waiting for pg" | Docker isn't running. Start Docker Desktop and run again |
+| Dashboard keeps showing *Connect your Zerodha account* | The daily token expired (06:00 IST) or you logged in to Kite elsewhere with the same app. Connect again |
+| Zerodha says the redirect URL doesn't match | The app's redirect URL must be exactly `http://127.0.0.1:5080/kite/callback`, with `127.0.0.1`, not `localhost` |
+| *Zerodha is not responding, try again in a minute* | Kite is down or rate-limiting (one retry is built in). Wait a minute and press **Refresh** |
+| Live login fails straight away, or the AI says *No API key for Groq: set GROQ_API_KEY and restart.* | Set the variable (`KITE_API_KEY`/`KITE_API_SECRET` or the LLM key), then restart VS Code **and** the terminal so Aspire inherits it |
+| The AI summary is missing with a short error, or Ask returns 503 | The LLM provider is down or rate-limited (Groq's free tier is per minute). Retry, or use `--AI:Provider=Gemini`. The findings still show without AI |
+| `web` fails: `Cannot find native binding` (rolldown) or `ERR_REQUIRE_ESM` | Use Node 24 (`node -v`), then `cd src/web && rm -rf node_modules && npm install` |
+| Port 5080 or 3000 already in use | Another copy is running. `aspire stop`, or stop the old `dotnet`/`node` process |
+| navsync: *Unrecognised AMFI header: …* | AMFI changed the file layout. Nothing was imported. Update `AmfiNavParser` (doc 05 §AMFI NAV parser) with a trimmed sample of the new file and a test |
+| navsync: *The NavRecords table doesn't exist yet* | The API creates the tables at startup in Development. Let `api` become healthy, then start navsync again |
+| navsync: *Couldn't download the AMFI NAV file* | Network or AMFI outage. Retry later; the old NAVs stay in place |
+| A fund shows as **Other** | Neither Kite's scheme type nor the AMFI category matched. Add an override in the plan (`assetClassOverrides`, e.g. a gold ETF → `Gold`) |
+
+---
+
+## Project docs
+
+The build spec this app was made from: `CLAUDE.md` (rules), `docs/01`–`09` (product, architecture, API contract, Kite, rules, AI guardrails, frontend, testing, security), `docs/DECISIONS.md` (every decision, dated) and `tasks/TASKS.md` (the phased plan).

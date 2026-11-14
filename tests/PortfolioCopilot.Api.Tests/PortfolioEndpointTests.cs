@@ -325,6 +325,47 @@ public class PortfolioEndpointTests(ApiFixture fx) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Nav_import_reads_the_live_8_column_layout()
+    {
+        var ok = await JsonAsync(await fx.Browser().PostAsJsonAsync("/api/nav/import", new { path = "samples/amfi/NAVAll.live-2026-11-13.sample.txt" }));
+
+        Assert.Equal(10, ok.GetProperty("imported").GetInt32()); // 11 records, one ISIN listed twice
+        Assert.Equal("2026-11-13", ok.GetProperty("navDate").GetString());
+        using var scope = fx.Api.Services.CreateScope();
+        var row = await scope.ServiceProvider.GetRequiredService<CopilotDbContext>().NavRecords.SingleAsync(n => n.Isin == "INF846K01WO1");
+        Assert.Equal("Axis Children's Fund - Direct Plan - Growth Option", row.SchemeName);
+    }
+
+    [Fact]
+    public async Task Purge_wipes_user_data_logs_out_of_kite_and_reseeds()
+    {
+        var browser = await ConnectedAsync();
+        (await browser.GetAsync("/api/holdings")).EnsureSuccessStatusCode();                          // a snapshot
+        (await browser.PostAsJsonAsync("/api/review", new { explain = false })).EnsureSuccessStatusCode(); // a review run
+        await JsonAsync(await browser.PostAsJsonAsync("/api/nav/import", new { path = "samples/amfi/NAVAll.live-2026-11-13.sample.txt" }));
+
+        var purged = await JsonAsync(await browser.DeleteAsync("/api/dev/purge"));
+
+        Assert.Equal(1, purged.GetProperty("kiteSessions").GetInt32());
+        Assert.True(purged.GetProperty("plans").GetInt32() >= 1);
+        Assert.Equal(9 + 10, purged.GetProperty("navRecords").GetInt32());
+        Assert.Equal(1, purged.GetProperty("snapshots").GetInt32());
+        Assert.True(purged.GetProperty("reviewRuns").GetInt32() >= 1);
+        Assert.True(purged.GetProperty("reseeded").GetBoolean());
+        Assert.Contains(await fx.MockRequestsAsync(), r => r is { Method: "DELETE", Path: "/session/token", Status: 200 });
+
+        using var scope = fx.Api.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CopilotDbContext>();
+        Assert.Equal(0, await db.KiteSessions.CountAsync());
+        Assert.Equal(0, await db.Snapshots.CountAsync());
+        Assert.Equal(0, await db.ReviewRuns.CountAsync());
+        Assert.Equal(1, await db.Plans.CountAsync());      // the sample plan, seeded again
+        Assert.Equal(9, await db.NavRecords.CountAsync()); // Mock mode: the sample AMFI file, seeded again
+        Assert.Equal(HttpStatusCode.Unauthorized, (await browser.GetAsync("/api/holdings")).StatusCode);
+        (await browser.GetAsync("/api/plan")).EnsureSuccessStatusCode();
+    }
+
+    [Fact]
     public async Task Unknown_scenario_is_404()
     {
         var response = await fx.Browser().PostAsync("/api/dev/scenario/does-not-exist", null);

@@ -4,6 +4,7 @@ import { ConnectToast } from "@/components/ConnectToast";
 import { ErrorPanel, KITE_DOWN_MESSAGE } from "@/components/ErrorPanel";
 import { ExplainPanel } from "@/components/ExplainPanel";
 import { FindingsList } from "@/components/FindingsList";
+import { StaleNavNotice } from "@/components/StaleNavNotice";
 import { SummaryCards } from "@/components/SummaryCards";
 import { apiGet, apiSend } from "@/lib/api";
 import { formatDate, formatIst } from "@/lib/format";
@@ -29,7 +30,6 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
   if (result.kind === "unavailable") return <div className="space-y-4">{toast}<ErrorPanel message={KITE_DOWN_MESSAGE} /></div>;
 
   const [review, holdings, sips, plan] = result.data;
-  const stale = review.findings.find((f) => f.rule === "StaleNav");
 
   return (
     <div className="space-y-6">
@@ -38,7 +38,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           As of {formatIst(review.asOfUtc)} · NAV date {formatDate(review.navDate)}
-          {stale && <span className="ml-2 font-medium text-amber-700 dark:text-amber-400">· some fund prices are stale</span>}
+          <StaleNavNotice findings={review.findings} />
         </p>
       </div>
 

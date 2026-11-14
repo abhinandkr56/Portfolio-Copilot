@@ -36,6 +36,7 @@ public static class PortfolioEndpoints
     {
         var dev = app.MapGroup("/api").WithTags("Development");
         dev.MapPost("/nav/import", ImportNav);
+        dev.MapDelete("/dev/purge", Purge);
         if (kite.IsMock)
             dev.MapPost("/dev/scenario/{name}", SwitchScenario);
     }
@@ -116,6 +117,36 @@ public static class PortfolioEndpoints
         {
             return TypedResults.Problem(ex.Message, statusCode: 400, title: "Unrecognised AMFI file");
         }
+    }
+
+    /// <summary>
+    /// Wipes every table that holds the user's data (session, plans, NAVs, snapshots, review audit), drops all
+    /// in-memory caches and Ask conversations, then runs the first-run seed again so the app still works.
+    /// The Kite token is invalidated at Kite first (best effort), like logout. Data Protection keys are kept: they aren't user data.
+    /// </summary>
+    private static async Task<PurgeResponse> Purge(CopilotDbContext db, KiteSessionStore sessions, KiteClient kite,
+        IMemoryCache cache, IServiceProvider services, ILogger<PortfolioService> logger, CancellationToken ct)
+    {
+        await KiteEndpoints.InvalidateKiteTokenAsync(sessions, kite, logger, ct);
+
+        PurgeResponse result;
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            result = new PurgeResponse(
+                await db.KiteSessions.ExecuteDeleteAsync(ct),
+                await db.Plans.ExecuteDeleteAsync(ct),
+                await db.NavRecords.ExecuteDeleteAsync(ct),
+                await db.Snapshots.ExecuteDeleteAsync(ct),
+                await db.ReviewRuns.ExecuteDeleteAsync(ct),
+                Reseeded: false);
+            await tx.CommitAsync(ct);
+        }
+        (cache as MemoryCache)?.Clear(); // holdings, profile, Ask conversations
+
+        await DataSeeder.SeedAsync(services, ct);
+        logger.LogWarning("Purged: {Sessions} session, {Plans} plans, {Navs} NAVs, {Snapshots} snapshots, {Runs} review runs; seed re-run",
+            result.KiteSessions, result.Plans, result.NavRecords, result.Snapshots, result.ReviewRuns);
+        return result with { Reseeded = true };
     }
 
     /// <summary>Mock only: switches MockKite's scenario, loads the scenario's plan, and clears the cached Kite data.</summary>
